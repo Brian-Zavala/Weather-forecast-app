@@ -12,12 +12,8 @@ def get_data(place, days=None, kind=None):
     if days is not None:
         fc_days = 8 * days
         filtered_data = filtered_data[:fc_days]
-    if kind == "Temperature":
-        filtered_data = [dict["main"]["temp"] for dict in filtered_data]
-    if kind == "Sky":
-        filtered_data = [dict["weather"][0]["main"] for dict in filtered_data]
     return filtered_data
 
 
 if __name__ == '__main__':
-    print(get_data(place="Houston", days=3, kind="Temperature"))
+    print(get_data(place="Houston", days=3))
