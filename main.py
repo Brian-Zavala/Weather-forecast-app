@@ -6,17 +6,31 @@ import json
 
 st.set_page_config(layout="wide")
 
+st.logo("https://miro.medium.com/v2/resize:fit:1200/1*N9tLv5CqD4wtZQXheWEEKw.gif")
+
 
 def get(path: str):
     with open(path, "r") as f:
         return json.load(f)
+
 
 clear = get("lottie/clear.json")
 clouds = get("lottie/cloudy.json")
 rain = get("lottie/rain.json")
 snow = get("lottie/snow.json")
 
+page_bg_img = """
+<style>
+[data-testid="stAppViewContainer"] {
+background-image: url("https://cdn2.vectorstock.com/i/1000x1000/06/56/clouds-background-vector-20700656.jpg");
+background-size: 100%;
+background-position: center;
+background-attachment: local; 
 
+}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
 st.title("Weather Forecast")
