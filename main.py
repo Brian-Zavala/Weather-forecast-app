@@ -1,19 +1,18 @@
 import streamlit as st
-from pygments.styles.dracula import red
 from streamlit_lottie import st_lottie
 import plotly.express as px
-from backend import get_data
-from backend import collect_and_display_feedback
 import json
 from datetime import datetime
 import pytz
+from timezonefinder import TimezoneFinder
 
+# Import the functions from the provided backend code
+from backend import get_weather, get_coordinates, collect_and_display_feedback
 
 st.set_page_config(layout="wide")
 
-st.logo("https://miro.medium.com/v2/resize:fit:1200/1*N9tLv5CqD4wtZQXheWEEKw.gif")
 
-
+# Load Lottie files
 def get(path: str):
     with open(path, "r") as f:
         return json.load(f)
@@ -23,9 +22,10 @@ thumbDown = get("lottie/thumbs_down.json")
 thumbUp = get("lottie/thumbs_up.json")
 clear = get("lottie/clear.json")
 clouds = get("lottie/cloudy.json")
-rain = get("lottie/rain.json")
+rainy = get("lottie/rain.json")
 snow = get("lottie/snow.json")
 
+# Set background image
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
@@ -33,7 +33,6 @@ background-image: url("https://cdn2.vectorstock.com/i/1000x1000/06/56/clouds-bac
 background-size: 100%;
 background-position: center;
 background-attachment: local; 
-
 }
 </style>
 """
@@ -44,72 +43,80 @@ st.title("5-Day Weather Forecast")
 
 place = st.text_input("City Name & or State or Zip Code: ")
 
-timeZone = st.selectbox("Select timezone to use: ", pytz.all_timezones)
-
 days = st.slider("Next 5 days", 1, 5, help="Select the day you'd like to see")
 
-choice = st.selectbox("Select data to view",
-                      ("Temperature", "Sky"))
-
-
+choice = st.selectbox("Select data to view", ("Temperature", "Sky-View"))
 
 st.subheader(f"{choice} for the next {days} day(s) in {place}")
 
-
 if place:
-    # Use the imported data for temperature/sky
-    filtered_data = get_data(place, days)
+    try:
+        # Fetch weather data and coordinates
+        filtered_data_weather = get_weather(place, days)
+        lat, lon = get_coordinates(place)
 
-    if choice == "Temperature":
-        temperature = [dict["main"]["temp"] for dict in filtered_data]
+        # Get the timezone for the given coordinates
+        tf = TimezoneFinder()
+        timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
+        local_tz = pytz.timezone(timezone_str)
 
-        date = []
-        local_tz = pytz.timezone(timeZone)  # Replace with your local timezone, e.g., "America/New_York"
+        if choice == "Temperature":
+            temperature = [dict["main"]["temp"] for dict in filtered_data_weather]
+            humidity = [dict["main"]["humidity"] for dict in filtered_data_weather]
+            date = []
 
-        for dict in filtered_data:
-            dt = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S")
-            dt = pytz.utc.localize(dt)  # Assume the API data is in UTC
-            local_dt = dt.astimezone(local_tz)
-            formatted_date = local_dt.strftime("%Y-%m-%d %I:%M %p")  # 12-hour format with AM/PM
-            date.append(formatted_date)
-        # Create a temperature line graph
-        figure = px.bar(x=date, y=temperature, color=temperature, labels={"x": "Date", "y": "Temperature (F)"})
+            for dict in filtered_data_weather:
+                # Parse the UTC time
+                utc_time = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S")
+                utc_time = utc_time.replace(tzinfo=pytz.UTC)
+                # Convert to local time
+                local_time = utc_time.astimezone(local_tz)
+                fixed_time = local_time.strftime("%I:%M %p")
+                date.append(fixed_time)
 
-        figure.update_layout(
-            xaxis_title="Date (Local Time)",
-            yaxis_title="Temperature (°F)",
-            xaxis_tickangle=-45  # Rotate x-axis labels for readability
-        )
+            # Create a temperature line graph
+            figure = px.line(x=date, y=[temperature, humidity], labels={"x": "Date", "y": "Temperature (F)"})
 
-        st.plotly_chart(figure, use_container_width=True, theme="streamlit")
+            figure.update_layout(
+                xaxis_title=f"Date (Local Time - {timezone_str})",
+                yaxis_title="Temperature (°F)",
+                xaxis_tickangle=-45  # Rotate x-axis labels for readability
+            )
 
-    if choice == "Sky":
-        images = {"Clear": clear, "Clouds": clouds,
-                  "Rain": rain, "Snow": snow}
-        # Group the data by day
-        daily_conditions = {}
-        for data_point in filtered_data:
-            date = data_point["dt_txt"].split()[0]  # Get just the date
-            time = datetime.strptime(data_point["dt_txt"], "%Y-%m-%d %H:%M:%S").strftime("%I:%M %p")
-            temperature = [dict["main"]["temp"] for dict in filtered_data]
-            condition = data_point["weather"][0]["main"]
-            if date not in daily_conditions:
-                daily_conditions[date] = {"condition": condition,
-                                          "time": time, "temperature": temperature}
+            st.plotly_chart(figure, use_container_width=True, theme="streamlit")
 
-        # Create columns for each day
-        cols = st.columns(len(daily_conditions))
+        if choice == "Sky-View":
+            images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
+            # Group the data by day
+            daily_conditions = {}
+            for data_point in filtered_data_weather:
+                utc_time = datetime.strptime(data_point["dt_txt"], "%Y-%m-%d %H:%M:%S")
+                utc_time = utc_time.replace(tzinfo=pytz.UTC)
+                local_time = utc_time.astimezone(local_tz)
+                date = local_time.strftime("%Y-%m-%d")
+                time = local_time.strftime("%I:%M %p")
+                temperature = data_point["main"]["temp"]
+                condition = data_point["weather"][0]["main"]
+                if date not in daily_conditions:
+                    daily_conditions[date] = {"condition": condition, "time": time, "temperature": temperature}
 
-        # Display the weather condition for each day
-        for i, (date, info) in enumerate(daily_conditions.items()):
-            with cols[i]:
-                st.write(f"{date} | {info['time']}")
-                st.write(info["condition"])
+            # Create columns for each day
+            cols = st.columns(len(daily_conditions))
 
-                if info['condition'] in images:
-                    st_lottie(images[info['condition']], height=175, key=f"lottie_{i}")
-                else:
-                    st.write(f"No animation for {info['condition']}")
+            # Display the weather condition for each day
+            for i, (date, info) in enumerate(daily_conditions.items()):
+                with cols[i]:
+                    st.write(f"{date} | {info['time']} ({timezone_str})")
+                    st.write(info["condition"])
+                    st.write(f"{info['temperature']}°F")
 
+                    if info['condition'] in images:
+                        st_lottie(images[info['condition']], height=175, key=f"lottie_{i}")
+                    else:
+                        st.write(f"No animation for {info['condition']}")
 
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+
+# Add the feedback system
 collect_and_display_feedback()
