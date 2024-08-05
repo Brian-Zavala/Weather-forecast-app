@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 import pytz
 from timezonefinder import TimezoneFinder
+import pandas as pd
 
 # Import the functions from the provided backend code
 from backend import get_weather, get_coordinates, collect_and_display_feedback
@@ -29,8 +30,8 @@ snow = get("lottie/snow.json")
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
-background-image: url("https://cdn2.vectorstock.com/i/1000x1000/06/56/clouds-background-vector-20700656.jpg");
-background-size: 100%;
+background-image: url("https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif");
+background-size: 34%;
 background-position: center;
 background-attachment: local; 
 }
@@ -45,7 +46,7 @@ place = st.text_input("City Name & or State or Zip Code: ")
 
 days = st.slider("Next 5 days", 1, 5, help="Select the day you'd like to see")
 
-choice = st.selectbox("Select data to view", ("Temperature", "Sky-View"))
+choice = st.selectbox("Select data to view", ("Temperature", "Sky-View", "Map"))
 
 st.subheader(f"{choice} for the next {days} day(s) in {place}")
 
@@ -62,7 +63,6 @@ if place:
 
         if choice == "Temperature":
             temperature = [dict["main"]["temp"] for dict in filtered_data_weather]
-            humidity = [dict["main"]["humidity"] for dict in filtered_data_weather]
             date = []
 
             for dict in filtered_data_weather:
@@ -71,13 +71,15 @@ if place:
                 utc_time = utc_time.replace(tzinfo=pytz.UTC)
                 # Convert to local time
                 local_time = utc_time.astimezone(local_tz)
-                fixed_time = local_time.strftime("%I:%M %p")
+                fixed_time = local_time.strftime("%m-%d  -   %I:%M %p")
                 date.append(fixed_time)
 
             # Create a temperature line graph
-            figure = px.line(x=date, y=[temperature, humidity], labels={"x": "Date", "y": "Temperature (F)"})
+            figure = px.line(x=date, y=temperature, labels={"x": "Date",
+                                                            "y": "Temperature (F))"})
 
             figure.update_layout(
+                hovermode="y",
                 xaxis_title=f"Date (Local Time - {timezone_str})",
                 yaxis_title="Temperature (°F)",
                 xaxis_tickangle=-45  # Rotate x-axis labels for readability
@@ -114,6 +116,10 @@ if place:
                         st_lottie(images[info['condition']], height=175, key=f"lottie_{i}")
                     else:
                         st.write(f"No animation for {info['condition']}")
+
+        if choice == "Map":
+            map_data = pd.DataFrame({'lat': [lat], 'lon': [lon]})
+            st.map(map_data, color="#42a5f5", size=200)
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
