@@ -6,9 +6,10 @@ from datetime import datetime
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-
-# Import the functions from the provided backend code
-from backend import get_weather, get_coordinates, collect_and_display_feedback
+from backend import get_weather, get_coordinates, collect_and_display_feedback, get_radar, create_map
+import time
+import folium
+from streamlit_folium import folium_static
 
 st.set_page_config(layout="wide")
 
@@ -63,6 +64,7 @@ if place:
 
         if choice == "Temperature":
             temperature = [dict["main"]["temp"] for dict in filtered_data_weather]
+            humidity = [dict["main"]["humidity"] for dict in filtered_data_weather]
             date = []
 
             for dict in filtered_data_weather:
@@ -86,6 +88,12 @@ if place:
             )
 
             st.plotly_chart(figure, use_container_width=True, theme="streamlit")
+            df_date = date
+            df_humidity = humidity
+            data = pd.DataFrame({"Time/Date": df_date, "Humidity %": df_humidity})
+
+            st.bar_chart(data=data, x="Time/Date", y="Humidity %", horizontal=True, color=(0, 170, 255),
+                         use_container_width=True, x_label="Humidity %", y_label="Time")
 
         if choice == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
@@ -117,9 +125,95 @@ if place:
                     else:
                         st.write(f"No animation for {info['condition']}")
 
+
+        def find_closest_time(target_time, time_list):
+            return min(time_list, key=lambda x: abs(x - target_time))
+
+
         if choice == "Map":
-            map_data = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            st.map(map_data, color="#42a5f5", size=200)
+            # Fetch radar data
+            radar_data = get_radar()
+            if not radar_data or 'radar' not in radar_data or 'past' not in radar_data['radar']:
+                st.error("Unable to fetch radar data. The radar service might be temporarily unavailable.")
+            else:
+                st.header("Weather and Radar Data")
+                past_frames = radar_data['radar']['past']
+
+                if not past_frames:
+                    st.warning("No past radar data available for the selected location.")
+                else:
+                    # Initialize session state
+                    if 'playing' not in st.session_state:
+                        st.session_state.playing = False
+                    if 'current_frame_index' not in st.session_state:
+                        st.session_state.current_frame_index = 0
+
+
+                    # Function to get weather data for a specific time
+                    def get_weather_for_time(target_time):
+                        return min(filtered_data_weather,
+                                   key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
+
+
+                    # Function to update map and weather information
+                    def update_map_and_info():
+                        current_frame = past_frames[st.session_state.current_frame_index]
+                        m = create_map(radar_data, current_frame, "past", place)
+                        with map_placeholder.container():
+                            folium_static(m)
+
+                        frame_time = datetime.fromtimestamp(current_frame['time'])
+                        time_display.write(f"Current frame time: {frame_time.strftime('%I:%M %p')}")
+
+                        # Get and display weather information
+                        weather_data = get_weather_for_time(frame_time)
+                        weather_info.write(f"""
+                        Temperature: {weather_data['main']['temp']}°F
+                        Humidity: {weather_data['main']['humidity']}%
+                        Wind Speed: {weather_data['wind']['speed']} mph
+                        Weather: {weather_data['weather'][0]['description']}
+                        """)
+
+
+                    # Function to toggle play/pause
+                    def toggle_play():
+                        st.session_state.playing = not st.session_state.playing
+
+
+                    # Create play/pause button
+                    st.button("Play/Pause", on_click=toggle_play)
+
+                    # Create map, time display, and weather info placeholders
+                    map_placeholder = st.empty()
+                    time_display = st.empty()
+                    weather_info = st.empty()
+                    status_display = st.empty()
+
+                    # Initial map and info update
+                    update_map_and_info()
+
+
+                    # Custom callback to update the map and weather info
+                    def custom_callback():
+                        while st.session_state.playing:
+                            st.session_state.current_frame_index = (st.session_state.current_frame_index + 1) % len(
+                                past_frames)
+                            update_map_and_info()
+                            status_display.write("Status: Playing")
+                            time.sleep(1.29)  # Wait for 1.29 seconds before next update
+                        status_display.write("Status: Paused")
+
+
+                    # Use st.empty() to create a container for the custom callback
+                    callback_placeholder = st.empty()
+
+                    # Run the custom callback if playing
+                    if st.session_state.playing:
+                        callback_placeholder.markdown("Animation running...")
+                        custom_callback()
+                    else:
+                        callback_placeholder.markdown("Animation paused.")
+
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")

@@ -2,11 +2,49 @@ import requests
 import streamlit as st
 from datetime import datetime
 import time
+import folium
 from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
 
 API_KEY = "6d88b1e8f4d58057b86ef9f8375c356a"
+
+
+def get_radar():
+    API_URL = f"https://api.rainviewer.com/public/weather-maps.json"
+    response = requests.get(API_URL)
+    return response.json()
+
+
+def create_map(data, selected_frame, frame_type, place):
+    lat, lon = get_coordinates(place)
+    m = folium.Map(location=[lat, lon], zoom_start=8)
+
+    tile_url = f"{data['host']}{selected_frame['path']}/256/{{z}}/{{x}}/{{y}}/2/1_1.png"
+    folium.TileLayer(
+        tiles=tile_url,
+        name=f"{frame_type.capitalize()} Radar",
+        attr="RainViewer",
+        overlay=True,
+        controls=True
+    ).add_to(m)
+
+    coverage_url = f"{data['host']}/v2/coverage/0/256/{{z}}/{{x}}/{{y}}/0/0_0.png"
+    folium.TileLayer(
+        tiles=coverage_url,
+        attr='RainViewer',
+        name='Radar Coverage',
+        overlay=True,
+        control=True
+    ).add_to(m)
+
+    folium.Marker(
+        location=[lat, lon],
+        popup="Selected Location",
+        tooltip="Selected Location"
+    ).add_to(m)
+
+    return m
 
 
 def get_weather(place, days=None):
@@ -20,7 +58,7 @@ def get_weather(place, days=None):
     return filtered_data_weather
 
 
-def get_coordinates(place, lat=None, lon=None):
+def get_coordinates(place):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
     response = requests.get(url)
     data = response.json()
@@ -28,7 +66,6 @@ def get_coordinates(place, lat=None, lon=None):
     lat = city_info['coord']['lat']
     lon = city_info['coord']['lon']
     return lat, lon
-
 
 
 def get(path: str):
