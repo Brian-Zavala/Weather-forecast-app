@@ -99,11 +99,16 @@ def collect_and_display_feedback():
     # Initialize session state for storing feedback
     if 'feedback_list' not in st.session_state:
         st.session_state.feedback_list = []
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("🌧️🌈🌞☁️⛄")
 
-    st.subheader("Provide Feedback")
+    st.subheader("Feedback 😇")
 
     # Create columns for thumbs up and down buttons
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([0.3, 1.7], gap='small', vertical_alignment="center")
 
     with col1:
         thumbs_up = st.button("👍 Thumbs Up")
@@ -154,4 +159,4 @@ def collect_and_display_feedback():
 
 if __name__ == '__main__':
     print(get_weather(place="Houston", days=5))
-    print(get_coordinates(place="Houston", lat="", lon=""))
+    print(get_coordinates(place="Houston"))

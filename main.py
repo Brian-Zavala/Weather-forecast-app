@@ -9,8 +9,10 @@ import pandas as pd
 from backend import get_weather, get_coordinates, collect_and_display_feedback, get_radar, create_map
 import time
 from streamlit_folium import folium_static
+from streamlit_extras.stylable_container import stylable_container
+from streamlit_extras.grid import grid
 
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Weather App", page_icon="🌡️" ,layout="wide")
 
 
 # Load Lottie files
@@ -40,14 +42,14 @@ background-attachment: local;
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-st.logo("https://cloudfront-us-east-1.images.arcpublishing.com/gray/63NKVNATJNFRHLXNGMCSAPPV5U.gif")
+st.logo("QuadFather.jpg")
 
 
 place = st.text_input("City Name & or State or Zip Code: ")
 
 days = st.slider("Next 5 days", 1, 5, help="Select the day you'd like to see")
 
-choice = st.selectbox("Select data to view", ("Temperature", "Sky-View", "Map"))
+choice = st.selectbox("Select data to view", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(f"{choice} for the next {days} day(s) in {place}")
 
@@ -121,7 +123,19 @@ if place:
                     st.write(f"{info['temperature']}°F")
 
                     if info['condition'] in images:
-                        st_lottie(images[info['condition']], height=175, key=f"lottie_{i}")
+                        st_lottie(images[info['condition']], height=200, key=f"lottie_{i}")
+                        if "Clear" in info['condition'] and "Clear" in images:
+                            st.audio("Clear.mp3", format="audio/mpeg",
+                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                        if "Rain" in info['condition'] and "Rain" in images:
+                            st.audio("Rain.mp3", format="audio/mpeg",
+                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                        if "Cloudy" in info["condition"] and "Cloudy" in images:
+                            st.audio("Cloudy.mp3", format="audio/mpeg",
+                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                        if "Snow" in info['condition'] and "Snow" in images:
+                            st.audio("Snow.mp3", format="audio/mpeg",
+                                     start_time="0", end_time="1", loop=True, autoplay=True)
 
                     else:
                         st.write(f"No animation for {info['condition']}")
@@ -132,7 +146,7 @@ if place:
             return min(time_list, key=lambda x: abs(x - target_time))
 
 
-        if choice == "Map":
+        if choice == "Radar":
             # Fetch radar data
             radar_data = get_radar()
             if not radar_data or 'radar' not in radar_data or 'past' not in radar_data['radar']:
@@ -222,5 +236,5 @@ if place:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
-# Add the feedback system
+    # Add the feedback system
 collect_and_display_feedback()
