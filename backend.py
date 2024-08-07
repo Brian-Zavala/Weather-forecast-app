@@ -75,24 +75,24 @@ def get(path: str):
 
 def celebration1():
     rain(
-        emoji="😁",
+        emoji="😇👏",
         font_size=54,
-        falling_speed=5,
+        falling_speed=4,
         animation_length="0.65"
     )
 
 
 def celebration2():
     rain(
-        emoji="😭",
+        emoji="👹😭",
         font_size=54,
-        falling_speed=5,
+        falling_speed=4,
         animation_length="0.65"
     )
 
 
-thumbDown = get("lottie/thumbs_down.json")
-thumbUp = get("lottie/thumbs_up.json")
+thumbDown = get("lottie/cry.json")
+thumbUp = get("lottie/confetti.json")
 
 
 def collect_and_display_feedback():
@@ -103,9 +103,12 @@ def collect_and_display_feedback():
     st.write("")
     st.write("")
     st.write("")
-    st.write("🌧️🌈🌞☁️⛄")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
 
-    st.subheader("Feedback 😇")
+    st.subheader("😇 Feedback Available 👹")
 
     # Create columns for thumbs up and down buttons
     col1, col2 = st.columns([0.3, 1.7], gap='small', vertical_alignment="center")
@@ -114,6 +117,7 @@ def collect_and_display_feedback():
         thumbs_up = st.button("👍 Thumbs Up")
         if thumbs_up:
             with st_lottie_spinner(thumbUp, height=200):
+                st.image("QuadFather.jpg")
                 time.sleep(1)
                 celebration1()
 

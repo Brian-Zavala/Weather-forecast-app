@@ -9,10 +9,8 @@ import pandas as pd
 from backend import get_weather, get_coordinates, collect_and_display_feedback, get_radar, create_map
 import time
 from streamlit_folium import folium_static
-from streamlit_extras.stylable_container import stylable_container
-from streamlit_extras.grid import grid
 
-st.set_page_config(page_title="Weather App", page_icon="🌡️" ,layout="wide")
+st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide")
 
 
 # Load Lottie files
@@ -21,8 +19,8 @@ def get(path: str):
         return json.load(f)
 
 
-thumbDown = get("lottie/thumbs_down.json")
-thumbUp = get("lottie/thumbs_up.json")
+thumbDown = get("lottie/cry.json")
+thumbUp = get("lottie/confetti.json")
 clear = get("lottie/clear.json")
 clouds = get("lottie/cloudy.json")
 rainy = get("lottie/rain.json")
@@ -33,24 +31,35 @@ page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
 background-image: url("https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif");
-background-size: 34%;
+background-size: 25%;
 background-position: center;
-background-attachment: local; 
+background-attachment: scroll; 
+background-repeat: repeat;
+}
+</style>
+"""
+
+header_bg_img = """
+<style>
+[class="st-emotion-cache-12fmjuu ezrtsby2"] {
+background-image: url("https://thekashmirhorizon.com/wp-content/uploads/Weather-Forecast.jpg");
+background-position: center;
+background-repeat: repeat;
+background-size: 12%;
+
 }
 </style>
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
+st.markdown(header_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-st.logo("QuadFather.jpg")
-
-
 place = st.text_input("City Name & or State or Zip Code: ")
 
 days = st.slider("Next 5 days", 1, 5, help="Select the day you'd like to see")
 
 choice = st.selectbox("Select data to view", ("Temperature", "Sky-View", "Radar"))
-
+st.write("🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️")
 st.subheader(f"{choice} for the next {days} day(s) in {place}")
 
 if place:
@@ -126,16 +135,16 @@ if place:
                         st_lottie(images[info['condition']], height=200, key=f"lottie_{i}")
                         if "Clear" in info['condition'] and "Clear" in images:
                             st.audio("Clear.mp3", format="audio/mpeg",
-                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                                     start_time=0, end_time=1, loop=False, autoplay=True)
                         if "Rain" in info['condition'] and "Rain" in images:
                             st.audio("Rain.mp3", format="audio/mpeg",
-                                     start_time="0", end_time="1", loop=True, autoplay=True)
-                        if "Cloudy" in info["condition"] and "Cloudy" in images:
-                            st.audio("Cloudy.mp3", format="audio/mpeg",
-                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                                     start_time=0, end_time=1, loop=False, autoplay=True)
+                        if "Clouds" in info["condition"] and "Clouds" in images:
+                            st.audio("Clouds.mp3", format="audio/mpeg",
+                                     start_time=0, end_time=1, loop=False, autoplay=True)
                         if "Snow" in info['condition'] and "Snow" in images:
                             st.audio("Snow.mp3", format="audio/mpeg",
-                                     start_time="0", end_time="1", loop=True, autoplay=True)
+                                     start_time=0, end_time=1, loop=False, autoplay=True)
 
                     else:
                         st.write(f"No animation for {info['condition']}")
