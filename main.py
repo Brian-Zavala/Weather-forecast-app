@@ -54,12 +54,11 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-place = st.text_input("City Name & or State or Zip Code: ")
+place = st.text_input("🏠 City Name & or State or Zip Code: ")
 
 days = st.slider("Next 5 days", 1, 5, help="Select the day you'd like to see")
 
-choice = st.selectbox("Select data to view", ("Temperature", "Sky-View", "Radar"))
-st.write("🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️🍃❄️🌨️🏂☃️🌦️🌧️🌞⛅🌤️🌥️")
+choice = st.selectbox("🌞 Select data to view", ("Temperature", "Sky-View", "Radar"))
 st.subheader(f"{choice} for the next {days} day(s) in {place}")
 
 if place:
