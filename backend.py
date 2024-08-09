@@ -1,13 +1,60 @@
+import pytz
 import requests
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import folium
 from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
+import functools
+
+from timezonefinder import TimezoneFinder
 
 API_KEY = "6d88b1e8f4d58057b86ef9f8375c356a"
+
+
+def cache_with_timeout(timeout_seconds):
+    def decorator(func):
+        cache = {}
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            key = str(args) + str(kwargs)
+            current_time = time.time()
+            if key in cache:
+                result, timestamp = cache[key]
+                if current_time - timestamp < timeout_seconds:
+                    return result
+            result = func(*args, **kwargs)
+            cache[key] = (result, current_time)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+@cache_with_timeout(300)  # Cache for 5 minutes
+def get_weather(place, days=None):
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    filtered_data_weather = data["list"]
+    if days is not None:
+        fc_days = 8 * days
+        filtered_data_weather = filtered_data_weather[:fc_days]
+    return filtered_data_weather
+
+
+def get_weather_for_day(filtered_data_weather, selected_day):
+    selected_date = (datetime.now() + timedelta(days=selected_day)).strftime("%Y-%m-%d")
+    day_weather = [data for data in filtered_data_weather if data['dt_txt'].startswith(selected_date)]
+    if day_weather:
+        # Return the weather for the middle of the day (noon) if available, otherwise the first entry
+        noon_weather = next((w for w in day_weather if w['dt_txt'].endswith("4:00:00")), day_weather[0])
+        return noon_weather
+    return None
 
 
 def get_radar():
@@ -45,17 +92,6 @@ def create_map(data, selected_frame, frame_type, place):
     ).add_to(m)
 
     return m
-
-
-def get_weather(place, days=None):
-    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
-    response = requests.get(url)
-    data = response.json()
-    filtered_data_weather = data["list"]
-    if days is not None:
-        fc_days = 8 * days
-        filtered_data_weather = filtered_data_weather[:fc_days]
-    return filtered_data_weather
 
 
 def get_coordinates(place):
@@ -111,23 +147,23 @@ def collect_and_display_feedback():
     st.subheader("😇 Feedback Available 👹")
 
     # Create columns for thumbs up and down buttons
-    col1, col2,col3 = st.columns([0.6, 0.6, 1.8], gap='small')
+    col1, col2, col3 = st.columns([0.6, 0.6, 1.8], gap='small')
 
     with col1:
         thumbs_up = st.button("👍 Thumbs Up")
         if thumbs_up:
             with st_lottie_spinner(thumbUp, height=200, quality="high", speed=3):
-                time.sleep(8)
+                time.sleep(7)
                 celebration1()
-
+                st.audio("cheer.mp3", format="audio/mpeg", autoplay=True)
 
     with col2:
         thumbs_down = st.button("👎 Thumbs Down")
         if thumbs_down:
             with st_lottie_spinner(thumbDown, height=200, quality="high", speed=3):
-                time.sleep(8)
+                time.sleep(7)
                 celebration2()
-
+                st.audio("fail.wav", format="audio/wav", autoplay=True)
 
     # Text input for comment
     comment = st.text_input("Add a comment (optional)")
