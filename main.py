@@ -6,9 +6,12 @@ from datetime import datetime, timedelta
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-from backend import get_weather, get_weather_for_day, get_coordinates, collect_and_display_feedback, get_radar, create_map
+from backend import (get_weather, get_weather_for_day, get_coordinates, collect_and_display_feedback,
+                     get_radar, create_map)
 import time
 from streamlit_folium import folium_static
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide")
 
@@ -74,7 +77,7 @@ border-radius: 30 px
 """, unsafe_allow_html=True)
 st.markdown("""
 <style>
-[id="temperature-for-2024-08-09"] {
+[class="element-container st-emotion-cache-19gogtv e1f1d6gn4"] {
 color: White;
 }
 </style>
@@ -92,21 +95,21 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 City, State or Zip Code: ")
+place = st.text_input("🏠 City, State or Zip Code: ", placeholder="Enter... ")
 
-days = st.slider("5 day forecast", 1, 6, help="Select the day you'd like to see")
+days = st.slider("5 day forecast", 0, 5, 0, help="Select the day you'd like to see")
 
-choice = st.selectbox("🌞 Select data to view", ("Temperature", "Sky-View", "Radar"))
-st.subheader(f"{choice} for {place} {(datetime.now() + timedelta(days=days-1)).strftime('%Y-%m-%d')}")
+selection = st.selectbox("🌞 Select data to view", ("Temperature", "Sky-View", "Radar"))
 
+st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        filtered_data_weather = get_weather(place, days)
+        filtered_data_weather = get_weather(place, days + 1)
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, days)
+        day_weather = get_weather_for_day(filtered_data_weather, days + 1)
 
         if day_weather:
             col1, col2, col3, col4 = st.columns(4)
@@ -116,7 +119,7 @@ if place:
                     value=f"{day_weather['main']['temp']:.1f}°F",
                     delta=f"Real Feel {day_weather['main']['temp'] +
                                        day_weather['main']['feels_like'] -
-                                       day_weather['main']['temp'] :.1f}°F",
+                                       day_weather['main']['temp']:.1f}°F",
                     delta_color="inverse"
                 )
             with col2:
@@ -137,17 +140,18 @@ if place:
                     label="Sky",
                     value=f"{day_weather['weather'][0]["description"]}")
 
-
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
         timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
         local_tz = pytz.timezone(timezone_str)
 
-        if choice == "Temperature":
+        if selection == "Temperature":
             temperature = [dict["main"]["temp"] for dict in filtered_data_weather]
             humidity = [dict["main"]["humidity"] for dict in filtered_data_weather]
+            wind = [dict["wind"]["speed"] for dict in filtered_data_weather]
+            real_feel = [dict["main"]["feels_like"] for dict in filtered_data_weather]
             date = []
-
+            chart_data = []
             for dict in filtered_data_weather:
                 # Parse the UTC time
                 utc_time = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S")
@@ -157,31 +161,45 @@ if place:
                 fixed_time = local_time.strftime("%m-%d  -   %I:%M %p")
                 date.append(fixed_time)
 
+                chart_data.append({
+                    "Time/Date": local_time.strftime("%m-%d %I:%M %p"),
+                    "Temperature": dict["main"]["temp"],
+                    "Real Feel": dict["main"]["feels_like"]
+                })
 
+            df = pd.DataFrame(chart_data)  # Create a temperature line graph
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+                                subplot_titles=("Temperature", "Real Feel Temperature"))
 
-            # Create a temperature line graph
-            figure = px.line(x=date, y=temperature, labels={"x": "Date",
-                                                            "y": "Temperature (F))"})
-
-            figure.update_layout(
-                hovermode="y",
+            fig.add_trace(
+                go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"),
+                row=1, col=1
+            )
+            fig.add_trace(
+                go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"),
+                row=2, col=1
+            )
+            fig.update_layout(
+                height=800,  # Adjust the height as needed
+                hovermode="x unified",
                 xaxis_title=f"Date (Local Time - {timezone_str})",
-                yaxis_title="Temperature °F",
-                xaxis_tickangle=-45  # Rotate x-axis labels for readability
+                xaxis_tickangle=-45,
             )
 
-            st.plotly_chart(figure, use_container_width=True, theme="streamlit")
+            fig.update_yaxes(title_text="Temperature °F", row=1, col=1)
+            fig.update_yaxes(title_text="Real Feel °F", row=2, col=1)
 
-            df_date = date
-            df_humidity = humidity
-            data = pd.DataFrame({"Time/Date": df_date, "Humidity %": df_humidity})
+            st.plotly_chart(fig, use_container_width=True, theme="streamlit")
 
-            st.bar_chart(data=data, x="Time/Date", y="Humidity %", horizontal=True, color=(0, 170, 255),
-                         use_container_width=True, x_label="Humidity %", y_label="Time")
+            humidity_data = pd.DataFrame({"Time/Date": date, "Humidity %": humidity, "Wind Speed MPH": wind})
 
-            st.audio("summer_music.mp3", start_time=0, autoplay=True, format="audio/mpeg")
+            st.area_chart(data=humidity_data, x="Time/Date", y=["Humidity %", "Wind Speed MPH"],
+                          use_container_width=True)
 
-        if choice == "Sky-View":
+            st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
+            pass
+
+        if selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
             # Group the data by day
             daily_conditions = {}
@@ -210,16 +228,16 @@ if place:
                         st_lottie(images[info['condition']], height=200, key=f"lottie_{i}")
                         if "Clear" in info['condition'] and "Clear" in images:
                             st.audio("Clear.mp3", format="audio/mpeg",
-                                     start_time=0, end_time=15, loop=True, autoplay=True)
-                        if "Rain" in info['condition'] and "Rain" in images:
+                                     start_time=0, end_time=30, loop=True, autoplay=True)
+                        elif "Rain" in info['condition'] and "Rain" in images:
                             st.audio("Rain.wav", format="audio/wav",
-                                     start_time=0, end_time=15, loop=True, autoplay=True)
-                        if "Clouds" in info["condition"] and "Clouds" in images:
+                                     start_time=0, end_time=30, loop=True, autoplay=True)
+                        elif "Clouds" in info["condition"] and "Clouds" in images:
                             st.audio("Clouds.wav", format="audio/wav",
-                                     start_time=0, end_time=15, loop=True, autoplay=True)
-                        if "Snow" in info['condition'] and "Snow" in images:
+                                     start_time=0, end_time=30, loop=True, autoplay=True)
+                        elif "Snow" in info['condition'] and "Snow" in images:
                             st.audio("Snow.mp3", format="audio/mpeg",
-                                     start_time=0, end_time=15, loop=True, autoplay=True)
+                                     start_time=0, end_time=30, loop=True, autoplay=True)
 
                     else:
                         st.write(f"No animation for {info['condition']}")
@@ -229,7 +247,7 @@ if place:
             return min(time_list, key=lambda x: abs(x - target_time))
 
 
-        if choice == "Radar":
+        if selection == "Radar":
             # Fetch radar data
             radar_data = get_radar()
             if not radar_data or 'radar' not in radar_data or 'past' not in radar_data['radar']:
@@ -246,6 +264,7 @@ if place:
                         st.session_state.playing = False
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
+
 
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
@@ -266,6 +285,7 @@ if place:
                         # Get and display weather information
                         weather_data = get_weather_for_time(frame_time)
 
+
                     # Function to toggle play/pause
                     def toggle_play():
                         st.session_state.playing = not st.session_state.playing
@@ -283,15 +303,17 @@ if place:
                     # Initial map and info update
                     update_map_and_info()
 
+
                     # Custom callback to update the map and weather info
                     def custom_callback():
                         while st.session_state.playing:
                             st.session_state.current_frame_index = (st.session_state.current_frame_index + 1) % len(
-                             past_frames)
+                                past_frames)
                             update_map_and_info()
                             status_display.write("Status: Playing")
                             time.sleep(1.29)  # Wait for 1.29 seconds before next update
                             status_display.write("Status: Paused")
+                            st.audio("ping.mp3", start_time=0, loop=True, autoplay=True, format="audio/mpeg")
 
 
                     # Use st.empty() to create a container for the custom callback
@@ -313,10 +335,9 @@ with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
     col1, col2, col3, col4 = st.columns([1, 2, 1.6, 0.4], gap="medium")
     with col4:
         st.write("")
-        st.write("Creator")
+        st.write("→Creator←")
         st.image("QuadFather.jpg", width=110)
         st.write("Brian Zavala")
-
 
 st.markdown("""
 <style>
@@ -334,4 +355,3 @@ color: Black;
 }  
 </style>
 """, unsafe_allow_html=True)
-

@@ -1,4 +1,3 @@
-import pytz
 import requests
 import streamlit as st
 from datetime import datetime, timedelta
@@ -8,8 +7,6 @@ from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
 import functools
-
-from timezonefinder import TimezoneFinder
 
 API_KEY = "6d88b1e8f4d58057b86ef9f8375c356a"
 
@@ -147,23 +144,24 @@ def collect_and_display_feedback():
     st.subheader("😇 Feedback Available 👹")
 
     # Create columns for thumbs up and down buttons
-    col1, col2, col3 = st.columns([0.6, 0.6, 1.8], gap='small')
+    col1, col2, col3 = st.columns([0.6, 0.6, 1.8], gap='large')
 
     with col1:
         thumbs_up = st.button("👍 Thumbs Up")
         if thumbs_up:
-            with st_lottie_spinner(thumbUp, height=200, quality="high", speed=3):
-                time.sleep(7)
-                celebration1()
+            with st_lottie_spinner(thumbUp, quality="high", speed=1):
                 st.audio("cheer.mp3", format="audio/mpeg", autoplay=True)
+                time.sleep(6)
+                celebration1()
 
     with col2:
         thumbs_down = st.button("👎 Thumbs Down")
         if thumbs_down:
-            with st_lottie_spinner(thumbDown, height=200, quality="high", speed=3):
-                time.sleep(7)
+            with st_lottie_spinner(thumbDown, speed=1):
+                st.audio("fail.wav", format="aeight=60, width=50,udio/wav", autoplay=True)
+                time.sleep(6)
                 celebration2()
-                st.audio("fail.wav", format="audio/wav", autoplay=True)
+
 
     # Text input for comment
     comment = st.text_input("Add a comment (optional)")
