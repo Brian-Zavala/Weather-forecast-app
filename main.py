@@ -12,7 +12,7 @@ from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="auto")
+st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 
 
 # Load Lottie files
@@ -47,7 +47,7 @@ header_bg_img = """
 background-image: url("https://thekashmirhorizon.com/wp-content/uploads/Weather-Forecast.jpg");
 background-position: center;
 background-repeat: repeat;
-background-size: 15%;
+background-size: 26%;
 background-attachment: local; 
 
 
@@ -80,7 +80,7 @@ st.markdown("""
 <style> 
 div.st-emotion-cache-1whx7iy p {
 color: Black;
-font-family: "Gerogia", serif;
+font-family: "Georgia", serif;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -96,7 +96,7 @@ display: none;
 st.markdown("""
         <style>
                .block-container {
-                    padding-top: 0rem;
+                    padding-top: 1rem;
                     padding-bottom: 0rem;
                     padding-left: 5rem;
                     padding-right: 5rem;
@@ -112,18 +112,17 @@ background-repeat: no-repeat;
 
 }
 div.st-emotion-cache-1wivap2{
-
 color: White;
 white-space: normal;
 line-height: 33.5px;
 text-overflow: clip;
 overflow: visible;
 margin-top: 0px;
-
 }
 div.st-emotion-cache-1whx7iy p {
 color: Snow;
 font-size: 30px;
+
 }
 .st-emotion-cache-1mi2ry5 {
 background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaQZXiwxn2YTOc_gUOy8byb2IPAQBZCFSP3w&s");
@@ -133,6 +132,17 @@ display: flex;
 }
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown(
+    """
+   <style>
+   [data-testid="stSidebar"][aria-expanded="true"]{
+       min-width: 95px;
+       max-width: 255px;
+   }
+   """,
+    unsafe_allow_html=True,
+)
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
@@ -167,7 +177,7 @@ if place:
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric(
-                        label="Today's High °F",
+                        label="High °F",
                         value=f"{day_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {day_weather['main']['temp'] +
                                            day_weather['main']['feels_like'] -
@@ -176,7 +186,7 @@ if place:
                     )
 
                     st.metric(
-                        label="Today's Low °F",
+                        label="Low °F",
                         value=f"{night_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {night_weather['main']['temp'] +
                                            night_weather['main']['feels_like'] -
@@ -184,7 +194,7 @@ if place:
                         delta_color="inverse"
                     )
                     st.metric(
-                        label="Humidity",
+                        label="Wet",
                         value=f"{day_weather['main']['humidity']}%"
                     )
                 with col2:
@@ -330,27 +340,23 @@ if place:
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
 
-
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
-
 
                     # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
                         m = create_map(radar_data, current_frame, "past", place)
                         with map_placeholder.container():
-                            folium_static(m)
+                                folium_static(m)
 
                         frame_time = datetime.fromtimestamp(current_frame['time'])
                         time_display.write(f"Current frame time: {frame_time.strftime('%I:%M %p')}")
 
                         # Get and display weather information
-                        weather_data = get_weather_for_time(frame_time)
-
-
+                        radar_data_data = get_weather_for_time(frame_time)
                     # Function to toggle play/pause
                     def toggle_play():
                         st.session_state.playing = not st.session_state.playing
@@ -367,7 +373,6 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
-
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
