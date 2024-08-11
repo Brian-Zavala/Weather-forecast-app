@@ -49,7 +49,7 @@ def get_weather_for_day(filtered_data_weather, selected_day):
     day_weather = [data for data in filtered_data_weather if data['dt_txt'].startswith(selected_date)]
     if day_weather:
         # Return the weather for the middle of the day (noon) if available, otherwise the first entry
-        high_weather = next((w for w in day_weather if w['dt_txt'].endswith("4:00:00")), day_weather[0])
+        high_weather = next((w for w in day_weather if w['dt_txt'].endswith("3:00:00")), day_weather[0])
         return high_weather
     return None
 
@@ -59,7 +59,7 @@ def get_weather_for_night(filtered_data_weather, selected_day):
     night_weather = [data for data in filtered_data_weather if data['dt_txt'].startswith(selected_date)]
     if night_weather:
         # Return the weather for the middle of the day (noon) if available, otherwise the first entry
-        low_weather = next((w for w in night_weather if w['dt_txt'].endswith("12:00:00")), night_weather[0])
+        low_weather = next((w for w in night_weather if w['dt_txt'].endswith("9:00:00")), night_weather[0])
         return low_weather
     return None
 

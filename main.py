@@ -114,7 +114,7 @@ background-repeat: no-repeat;
 div.st-emotion-cache-1wivap2{
 color: White;
 white-space: normal;
-line-height: 33.5px;
+line-height: 41.5px;
 text-overflow: clip;
 overflow: visible;
 margin-top: 0px;
@@ -177,7 +177,7 @@ if place:
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric(
-                        label="High °F",
+                        label="Low °F",
                         value=f"{day_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {day_weather['main']['temp'] +
                                            day_weather['main']['feels_like'] -
@@ -186,7 +186,7 @@ if place:
                     )
 
                     st.metric(
-                        label="Low °F",
+                        label="High °F",
                         value=f"{night_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {night_weather['main']['temp'] +
                                            night_weather['main']['feels_like'] -
