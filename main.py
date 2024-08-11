@@ -255,6 +255,8 @@ if place:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
+    else:
+        st.write("Weather Data")
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
