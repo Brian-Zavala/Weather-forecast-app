@@ -13,7 +13,7 @@ from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="auto")
+st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 
 
 # Load Lottie files
@@ -28,6 +28,21 @@ clear = get("lottie/clear.json")
 clouds = get("lottie/cloudy.json")
 rainy = get("lottie/rain.json")
 snow = get("lottie/snow.json")
+
+st.markdown("""
+<style>
+@media (max-width: 600px) {
+    .stApp {
+        padding: 0;
+    }
+    .stSidebar {
+        width: 100%;
+        max-width: none;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 # Set background image
 page_bg_img = """
@@ -137,16 +152,7 @@ color: Snow;
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(
-    """
-   <style>
-   [data-testid="stSidebar"][aria-expanded="true"]{
-       min-width: 95px;
-       max-width: 340px;
-   }
-   """,
-    unsafe_allow_html=True,
-)
+
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
@@ -178,6 +184,7 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
+
 
 if place:
     try:
