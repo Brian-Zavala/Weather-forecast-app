@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates, collect_and_display_feedback,
+from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
+                     collect_and_display_feedback,
                      get_radar, create_map)
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="auto")
 
 
 # Load Lottie files
@@ -125,10 +126,13 @@ font-size: 30px;
 
 }
 .st-emotion-cache-1mi2ry5 {
-background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaQZXiwxn2YTOc_gUOy8byb2IPAQBZCFSP3w&s");
+background-image: url("https://i.pinimg.com/originals/5b/67/52/5b67529447c2c398759e23b7700e644a.gif");
 background-size: 100%;
 display: flex;
+}
 
+[class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
+color: Snow;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -148,17 +152,30 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 City, State or Zip Code ", placeholder="Enter... ")
+# Initialize session state
+if 'days' not in st.session_state:
+    st.session_state.days = 1
+if 'weather_data' not in st.session_state:
+    st.session_state.weather_data = None
 
-days = st.slider("5 day forecast", 1, 6, help="Select the day you'd like to see")
-if days:
-    with st.spinner(text="Loading Day..."):
-        time.sleep(1)
+def update_days(key):
+    st.session_state.days = st.session_state[key]
+    st.session_state.weather_data = None  # Reset weather data when days change
 
+# Set page config and other setup code...
 
+# Add front-end to webpage title, widgets
+place = st.text_input("🏠 Location", placeholder="Enter... ")
 
+# Main page slider
+days = st.slider("5 day forecast", 1, 5,
+                 key="main_slider_days",
+                 value=st.session_state.days,
+                 on_change=update_days,
+                 args=('main_slider_days',),
+                 help="Select the day you'd like to see")
 
-selection = st.selectbox("🌞 Select data to view", ("Temperature", "Sky-View", "Radar"))
+selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
 
@@ -168,16 +185,22 @@ if place:
         filtered_data_weather = get_weather(place, days)
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, days)
-        night_weather = get_weather_for_night(filtered_data_weather, days)
+        day_weather = get_weather_for_day(filtered_data_weather, min(days, 5))
+        night_weather = get_weather_for_night(filtered_data_weather, min(days, 5))
 
+        # Sidebar content
         with st.sidebar:
-
+            st.slider("Next 1-5 days", 1, 5,
+                      key="sidebar_slider_days",
+                      value=st.session_state.days,
+                      on_change=update_days,
+                      args=('sidebar_slider_days',),
+                      help="Select the day")
             if day_weather and night_weather:
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric(
-                        label="Low °F",
+                        label="Day High °F",
                         value=f"{day_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {day_weather['main']['temp'] +
                                            day_weather['main']['feels_like'] -
@@ -186,7 +209,7 @@ if place:
                     )
 
                     st.metric(
-                        label="High °F",
+                        label="Day Low °F",
                         value=f"{night_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {night_weather['main']['temp'] +
                                            night_weather['main']['feels_like'] -
@@ -198,7 +221,6 @@ if place:
                         value=f"{day_weather['main']['humidity']}%"
                     )
                 with col2:
-
                     st.metric(
                         label="Wind Speed",
                         value=f"{day_weather['wind']['speed']:.1f} MPH",
@@ -209,7 +231,25 @@ if place:
 
                     st.metric(
                         label="Sky",
-                        value=f"{day_weather['weather'][0]["description"]}")
+                        value=f"{day_weather['weather'][0]['description']}"
+                    )
+            elif days == 6:
+                # Handle the case for day 6
+                last_day_weather = filtered_data_weather[+1]  # Get the last day's data
+                st.metric(
+                    label="Temperature °F",
+                    value=f"{last_day_weather['main']['temp']:.1f}°F",
+                    delta=f"Real Feel {last_day_weather['main']['feels_like']:.1f}°F",
+                    delta_color="inverse"
+                )
+                # Add other metrics for day 6 as needed
+            else:
+                st.write("No weather data available for the selected day.")
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+    else:
+        st.write("Enter a place to see weather details.")
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
@@ -340,23 +380,27 @@ if place:
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
 
+
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
+
 
                     # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
                         m = create_map(radar_data, current_frame, "past", place)
                         with map_placeholder.container():
-                                folium_static(m)
+                            folium_static(m)
 
                         frame_time = datetime.fromtimestamp(current_frame['time'])
                         time_display.write(f"Current frame time: {frame_time.strftime('%I:%M %p')}")
 
                         # Get and display weather information
                         radar_data_data = get_weather_for_time(frame_time)
+
+
                     # Function to toggle play/pause
                     def toggle_play():
                         st.session_state.playing = not st.session_state.playing
@@ -374,8 +418,11 @@ if place:
                     # Initial map and info update
                     update_map_and_info()
 
+
                     # Custom callback to update the map and weather info
                     def custom_callback():
+                        st.audio("ping.mp3", start_time=0, loop=True, autoplay=True, format="audio/mpeg")
+
                         while st.session_state.playing:
                             st.session_state.current_frame_index = (st.session_state.current_frame_index + 1) % len(
                                 past_frames)
@@ -383,7 +430,6 @@ if place:
                             status_display.write("Status: Playing")
                             time.sleep(1.29)  # Wait for 1.29 seconds before next update
                             status_display.write("Status: Paused")
-                            st.audio("ping.mp3", start_time=0, loop=True, autoplay=True, format="audio/mpeg")
 
 
                     # Use st.empty() to create a container for the custom callback
@@ -395,9 +441,6 @@ if place:
                         custom_callback()
                     else:
                         callback_placeholder.markdown("Animation paused.")
-
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
 
     # Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
