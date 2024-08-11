@@ -72,6 +72,7 @@ def get_radar():
 
 def create_map(data, selected_frame, frame_type, place):
     lat, lon = get_coordinates(place)
+
     m = folium.Map(location=[lat, lon], zoom_start=8)
 
     tile_url = f"{data['host']}{selected_frame['path']}/256/{{z}}/{{x}}/{{y}}/2/1_1.png"
