@@ -1,19 +1,18 @@
 import streamlit as st
 from streamlit_lottie import st_lottie
-import plotly.express as px
 import json
 from datetime import datetime, timedelta
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-from backend import (get_weather, get_weather_for_day, get_coordinates, collect_and_display_feedback,
+from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates, collect_and_display_feedback,
                      get_radar, create_map)
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide")
+st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="auto")
 
 
 # Load Lottie files
@@ -32,11 +31,11 @@ snow = get("lottie/snow.json")
 # Set background image
 page_bg_img = """
 <style>
-[data-testid="stAppViewContainer"] {
+[data-testid="stAppViewContainer"] > .main {
 background-image: url("https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif");
 background-size: 25%;
 background-position: center;
-background-attachment: scroll; 
+background-attachment: local; 
 background-repeat: repeat;
 }
 </style>
@@ -48,7 +47,9 @@ header_bg_img = """
 background-image: url("https://thekashmirhorizon.com/wp-content/uploads/Weather-Forecast.jpg");
 background-position: center;
 background-repeat: repeat;
-background-size: 12%;
+background-size: 15%;
+background-attachment: local; 
+
 
 }
 </style>
@@ -71,14 +72,15 @@ st.markdown("""
 <style>
 [class="st-at st-av st-aw st-au st-c6 st-c7 st-ah st-c8 st-c9"] {
 background-color: DeepSkyBlue;
-border-radius: 30 px
+border-radius: 20 px
 }
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""
-<style>
-[class="element-container st-emotion-cache-19gogtv e1f1d6gn4"] {
-color: White;
+<style> 
+div.st-emotion-cache-1whx7iy p {
+color: Black;
+font-family: "Gerogia", serif;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -91,54 +93,113 @@ display: none;
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+        <style>
+               .block-container {
+                    padding-top: 0rem;
+                    padding-bottom: 0rem;
+                    padding-left: 5rem;
+                    padding-right: 5rem;
+                }
+        </style>
+        """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+div.st-emotion-cache-1gwvy71 {
+background-image: url("https://media.gettyimages.com/id/1255467655/photo/lightning-strikes-and-severe-weather-on-the-great-plains.jpg?s=612x612&w=0&k=20&c=fwozMFiGpnBhmK5Lh-l-hus3NTDl43hySIlIQlwsGfY=");
+background-size: cover;
+background-repeat: no-repeat;
+
+}
+div.st-emotion-cache-1wivap2{
+
+color: White;
+white-space: normal;
+line-height: 33.5px;
+text-overflow: clip;
+overflow: visible;
+margin-top: 0px;
+
+}
+div.st-emotion-cache-1whx7iy p {
+color: Snow;
+font-size: 30px;
+}
+.st-emotion-cache-1mi2ry5 {
+background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaQZXiwxn2YTOc_gUOy8byb2IPAQBZCFSP3w&s");
+background-size: 100%;
+display: flex;
+
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 City, State or Zip Code: ", placeholder="Enter... ")
+place = st.text_input("🏠 City, State or Zip Code ", placeholder="Enter... ")
 
-days = st.slider("5 day forecast", 0, 5, 0, help="Select the day you'd like to see")
+days = st.slider("5 day forecast", 1, 6, help="Select the day you'd like to see")
+if days:
+    with st.spinner(text="Loading Day..."):
+        time.sleep(1)
+
+
+
 
 selection = st.selectbox("🌞 Select data to view", ("Temperature", "Sky-View", "Radar"))
 
-st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days)).strftime('%Y-%m-%d')}")
+st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        filtered_data_weather = get_weather(place, days + 1)
+        filtered_data_weather = get_weather(place, days)
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, days + 1)
+        day_weather = get_weather_for_day(filtered_data_weather, days)
+        night_weather = get_weather_for_night(filtered_data_weather, days)
 
-        if day_weather:
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric(
-                    label="Temperature",
-                    value=f"{day_weather['main']['temp']:.1f}°F",
-                    delta=f"Real Feel {day_weather['main']['temp'] +
-                                       day_weather['main']['feels_like'] -
-                                       day_weather['main']['temp']:.1f}°F",
-                    delta_color="inverse"
-                )
-            with col2:
-                st.metric(
-                    label="Humidity",
-                    value=f"{day_weather['main']['humidity']}%"
-                )
-            with col3:
-                st.metric(
-                    label="Wind Speed",
-                    value=f"{day_weather['wind']['speed']:.1f} MPH",
-                    delta=f"Wind Gust {day_weather['wind']['speed'] +
-                                       day_weather['wind']['gust']:.1f} MPH",
-                    delta_color="inverse"
-                )
-            with col4:
-                st.metric(
-                    label="Sky",
-                    value=f"{day_weather['weather'][0]["description"]}")
+        with st.sidebar:
+
+            if day_weather and night_weather:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric(
+                        label="Today's High °F",
+                        value=f"{day_weather['main']['temp']:.1f}°F",
+                        delta=f"Real Feel {day_weather['main']['temp'] +
+                                           day_weather['main']['feels_like'] -
+                                           day_weather['main']['temp']:.1f}°F",
+                        delta_color="inverse"
+                    )
+
+                    st.metric(
+                        label="Today's Low °F",
+                        value=f"{night_weather['main']['temp']:.1f}°F",
+                        delta=f"Real Feel {night_weather['main']['temp'] +
+                                           night_weather['main']['feels_like'] -
+                                           night_weather['main']['temp']:.1f}°F",
+                        delta_color="inverse"
+                    )
+                    st.metric(
+                        label="Humidity",
+                        value=f"{day_weather['main']['humidity']}%"
+                    )
+                with col2:
+
+                    st.metric(
+                        label="Wind Speed",
+                        value=f"{day_weather['wind']['speed']:.1f} MPH",
+                        delta=f"Wind Gust {day_weather['wind']['speed'] +
+                                           day_weather['wind']['gust']:.1f} MPH",
+                        delta_color="inverse"
+                    )
+
+                    st.metric(
+                        label="Sky",
+                        value=f"{day_weather['weather'][0]["description"]}")
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
@@ -167,34 +228,38 @@ if place:
                     "Real Feel": dict["main"]["feels_like"]
                 })
 
-            df = pd.DataFrame(chart_data)  # Create a temperature line graph
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                                subplot_titles=("Temperature", "Real Feel Temperature"))
+            col6, col7 = st.columns([2, 2])
 
-            fig.add_trace(
-                go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"),
-                row=1, col=1
-            )
-            fig.add_trace(
-                go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"),
-                row=2, col=1
-            )
-            fig.update_layout(
-                height=800,  # Adjust the height as needed
-                hovermode="x unified",
-                xaxis_title=f"Date (Local Time - {timezone_str})",
-                xaxis_tickangle=-45,
-            )
+            with col6:
+                df = pd.DataFrame(chart_data)  # Create a temperature line graph
+                fig = make_subplots(rows=1, cols=1, shared_xaxes=True, vertical_spacing=0.1,
+                                    subplot_titles=("Temperature", "Real Feel Temperature"))
 
-            fig.update_yaxes(title_text="Temperature °F", row=1, col=1)
-            fig.update_yaxes(title_text="Real Feel °F", row=2, col=1)
+                fig.add_trace(
+                    go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"),
+                    row=1, col=1
+                )
+                fig.add_trace(
+                    go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"),
+                    row=1, col=1
+                )
+                fig.update_layout(
+                    height=350,  # Adjust the height as needed
+                    hovermode="x unified",
+                    xaxis_title=f"Date (Local Time - {timezone_str})",
+                    xaxis_tickangle=-45,
+                )
 
-            st.plotly_chart(fig, use_container_width=True, theme="streamlit")
+                fig.update_yaxes(title_text="Temperature °F", row=1, col=1)
+                fig.update_yaxes(title_text="Real Feel °F", row=1, col=1)
 
-            humidity_data = pd.DataFrame({"Time/Date": date, "Humidity %": humidity, "Wind Speed MPH": wind})
+                st.plotly_chart(fig, use_container_width=True, theme="streamlit")
 
-            st.area_chart(data=humidity_data, x="Time/Date", y=["Humidity %", "Wind Speed MPH"],
-                          use_container_width=True)
+            with col7:
+                humidity_data = pd.DataFrame({"Time/Date": date, "Humidity %": humidity, "Wind Speed MPH": wind})
+
+                st.area_chart(data=humidity_data, x="Time/Date", y=["Humidity %", "Wind Speed MPH"],
+                              use_container_width=True)
 
             st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
             pass
@@ -332,7 +397,7 @@ if place:
     # Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
     collect_and_display_feedback()
-    col1, col2, col3, col4 = st.columns([1, 2, 1.6, 0.4], gap="medium")
+    col1, col2, col3, col4 = st.columns([1, 2, 1.2, 0.8], gap="medium")
     with col4:
         st.write("")
         st.write("→Creator←")
