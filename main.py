@@ -255,8 +255,6 @@ if place:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-    else:
-        st.write("Hover over graphs for metrics")
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
