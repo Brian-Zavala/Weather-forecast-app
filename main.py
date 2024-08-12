@@ -99,6 +99,15 @@ font-family: "Georgia", serif;
 }
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style> 
+
+.st-emotion-cache-1gwvy71 h2 {
+color: White;
+font-weight: 800;
+}
+</style>
+""", unsafe_allow_html=True)
 
 st.markdown("""
 <style>
@@ -196,7 +205,8 @@ if place:
 
         # Sidebar content
         with st.sidebar:
-            st.slider("Next 5 days", 1, 5,
+            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}")
+            st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,
                       on_change=update_days,
