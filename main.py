@@ -303,7 +303,7 @@ if place:
                               use_container_width=True)
 
             st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
-            pass
+
 
         if selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
@@ -377,6 +377,7 @@ if place:
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
 
+
                     # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
@@ -430,7 +431,7 @@ if place:
                     else:
                         callback_placeholder.markdown("Animation paused.")
     except KeyError:
-        st.subheader("This place does not exist")
+        st.write("This place does not exist")
 
     # Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
