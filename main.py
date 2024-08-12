@@ -48,7 +48,7 @@ page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] > .main {
 background-image: url("https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif");
-background-size: 25%;
+background-size: 33%;
 background-position: center;
 background-attachment: local; 
 background-repeat: repeat;
