@@ -169,7 +169,6 @@ def update_days(key):
 
 # Set page config and other setup code...
 
-
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter... ")
 
@@ -183,10 +182,8 @@ days = st.slider("5 day forecast", 1, 5,
 
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
-time = {(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}
-
 st.subheader(
-    f"{selection} for {place} | {time}")
+    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
