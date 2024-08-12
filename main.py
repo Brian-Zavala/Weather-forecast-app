@@ -43,7 +43,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # Set background image
 page_bg_img = """
 <style>
@@ -152,8 +151,6 @@ color: Snow;
 </style>
 """, unsafe_allow_html=True)
 
-
-
 st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
 
@@ -164,9 +161,11 @@ if 'days' not in st.session_state:
 if 'weather_data' not in st.session_state:
     st.session_state.weather_data = None
 
+
 def update_days(key):
     st.session_state.days = st.session_state[key]
     st.session_state.weather_data = None  # Reset weather data when days change
+
 
 # Set page config and other setup code...
 
@@ -183,22 +182,21 @@ days = st.slider("5 day forecast", 1, 5,
 
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
-st.subheader(f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')} UTC")
-
-
+st.subheader(
+    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        filtered_data_weather = get_weather(place, days)
+        filtered_data_weather = get_weather(place, st.session_state.days)
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, min(days, 5))
-        night_weather = get_weather_for_night(filtered_data_weather, min(days, 5))
+        day_weather = get_weather_for_day(filtered_data_weather, st.session_state.days)
+        night_weather = get_weather_for_night(filtered_data_weather, st.session_state.days)
 
         # Sidebar content
         with st.sidebar:
-            st.slider("Next 1-5 days", 1, 5,
+            st.slider("Next 5 days", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,
                       on_change=update_days,
@@ -225,7 +223,7 @@ if place:
                         delta_color="inverse"
                     )
                     st.metric(
-                        label="Wet",
+                        label="Humidity",
                         value=f"{day_weather['main']['humidity']}%"
                     )
                 with col2:
@@ -241,16 +239,6 @@ if place:
                         label="Sky",
                         value=f"{day_weather['weather'][0]['description']}"
                     )
-            elif days == 6:
-                # Handle the case for day 6
-                last_day_weather = filtered_data_weather[-1]  # Get the last day's data
-                st.metric(
-                    label="Temperature °F",
-                    value=f"{last_day_weather['main']['temp']:.1f}°F",
-                    delta=f"Real Feel {last_day_weather['main']['feels_like']:.1f}°F",
-                    delta_color="inverse"
-                )
-                # Add other metrics for day 6 as needed
             else:
                 st.write("No weather data available for the selected day.")
 
