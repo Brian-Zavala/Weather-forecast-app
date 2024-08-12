@@ -242,11 +242,6 @@ if place:
             else:
                 st.write("No weather data available for the selected day.")
 
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-    else:
-        st.write("")
-
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
         timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
@@ -382,7 +377,6 @@ if place:
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
 
-
                     # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
@@ -395,7 +389,6 @@ if place:
 
                         # Get and display weather information
                         radar_data_data = get_weather_for_time(frame_time)
-
 
                     # Function to toggle play/pause
                     def toggle_play():
@@ -413,7 +406,6 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
-
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
@@ -437,6 +429,8 @@ if place:
                         custom_callback()
                     else:
                         callback_placeholder.markdown("Animation paused.")
+    except KeyError:
+        st.subheader("This place does not exist")
 
     # Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
