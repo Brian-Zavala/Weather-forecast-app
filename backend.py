@@ -50,13 +50,13 @@ def parse_datetime(dt_str):
 def get_weather_for_day(weather_data, days):
     target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 1)).date()
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 13 <= parse_datetime(d['dt_txt']).hour < 21]
+                and 14 <= parse_datetime(d['dt_txt']).hour < 24]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 def get_weather_for_night(weather_data, days):
     target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 1)).date()
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                  and (parse_datetime(d['dt_txt']).hour < 4 or parse_datetime(d['dt_txt']).hour > 9)]
+                  and (parse_datetime(d['dt_txt']).hour < 18 or parse_datetime(d['dt_txt']).hour > 23)]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 
