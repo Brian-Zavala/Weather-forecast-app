@@ -242,7 +242,7 @@ if place:
                     )
             elif days == 6:
                 # Handle the case for day 6
-                last_day_weather = filtered_data_weather[+1]  # Get the last day's data
+                last_day_weather = filtered_data_weather[-1]  # Get the last day's data
                 st.metric(
                     label="Temperature °F",
                     value=f"{last_day_weather['main']['temp']:.1f}°F",
