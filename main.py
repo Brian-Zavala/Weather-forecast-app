@@ -187,76 +187,71 @@ st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days 
 
 
 if place:
-    try:
-        # Fetch weather data and coordinates
-        filtered_data_weather = get_weather(place, days)
-        lat, lon = get_coordinates(place)
+    # Fetch weather data and coordinates
+    filtered_data_weather = get_weather(place, days)
+    lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, min(days, 5))
-        night_weather = get_weather_for_night(filtered_data_weather, min(days, 5))
+    day_weather = get_weather_for_day(filtered_data_weather, min(days, 5))
+    night_weather = get_weather_for_night(filtered_data_weather, min(days, 5))
 
-        # Sidebar content
-        with st.sidebar:
-            st.slider("Next 1-5 days", 1, 5,
-                      key="sidebar_slider_days",
-                      value=st.session_state.days,
-                      on_change=update_days,
-                      args=('sidebar_slider_days',),
-                      help="Select the day")
-            if day_weather and night_weather:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric(
-                        label="Day High °F",
-                        value=f"{day_weather['main']['temp']:.1f}°F",
-                        delta=f"Real Feel {day_weather['main']['temp'] +
-                                           day_weather['main']['feels_like'] -
-                                           day_weather['main']['temp']:.1f}°F",
-                        delta_color="inverse"
-                    )
-
-                    st.metric(
-                        label="Day Low °F",
-                        value=f"{night_weather['main']['temp']:.1f}°F",
-                        delta=f"Real Feel {night_weather['main']['temp'] +
-                                           night_weather['main']['feels_like'] -
-                                           night_weather['main']['temp']:.1f}°F",
-                        delta_color="inverse"
-                    )
-                    st.metric(
-                        label="Wet",
-                        value=f"{day_weather['main']['humidity']}%"
-                    )
-                with col2:
-                    st.metric(
-                        label="Wind Speed",
-                        value=f"{day_weather['wind']['speed']:.1f} MPH",
-                        delta=f"Wind Gust {day_weather['wind']['speed'] +
-                                           day_weather['wind']['gust']:.1f} MPH",
-                        delta_color="inverse"
-                    )
-
-                    st.metric(
-                        label="Sky",
-                        value=f"{day_weather['weather'][0]['description']}"
-                    )
-            elif days == 6:
-                # Handle the case for day 6
-                last_day_weather = filtered_data_weather[+1]  # Get the last day's data
+    # Sidebar content
+    with st.sidebar:
+        st.slider("Next 1-5 days", 1, 5,
+                  key="sidebar_slider_days",
+                  value=st.session_state.days,
+                  on_change=update_days,
+                  args=('sidebar_slider_days',),
+                  help="Select the day")
+        if day_weather and night_weather:
+            col1, col2 = st.columns(2)
+            with col1:
                 st.metric(
-                    label="Temperature °F",
-                    value=f"{last_day_weather['main']['temp']:.1f}°F",
-                    delta=f"Real Feel {last_day_weather['main']['feels_like']:.1f}°F",
+                    label="Day High °F",
+                    value=f"{day_weather['main']['temp']:.1f}°F",
+                    delta=f"Real Feel {day_weather['main']['temp'] +
+                                       day_weather['main']['feels_like'] -
+                                       day_weather['main']['temp']:.1f}°F",
                     delta_color="inverse"
                 )
-                # Add other metrics for day 6 as needed
-            else:
-                st.write("No weather data available for the selected day.")
 
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-    else:
-        st.write("Weather Data")
+                st.metric(
+                    label="Day Low °F",
+                    value=f"{night_weather['main']['temp']:.1f}°F",
+                    delta=f"Real Feel {night_weather['main']['temp'] +
+                                       night_weather['main']['feels_like'] -
+                                       night_weather['main']['temp']:.1f}°F",
+                    delta_color="inverse"
+                )
+                st.metric(
+                    label="Wet",
+                    value=f"{day_weather['main']['humidity']}%"
+                )
+            with col2:
+                st.metric(
+                    label="Wind Speed",
+                    value=f"{day_weather['wind']['speed']:.1f} MPH",
+                    delta=f"Wind Gust {day_weather['wind']['speed'] +
+                                       day_weather['wind']['gust']:.1f} MPH",
+                    delta_color="inverse"
+                )
+
+                st.metric(
+                    label="Sky",
+                    value=f"{day_weather['weather'][0]['description']}"
+                )
+        elif days == 6:
+            # Handle the case for day 6
+            last_day_weather = filtered_data_weather[+1]  # Get the last day's data
+            st.metric(
+                label="Temperature °F",
+                value=f"{last_day_weather['main']['temp']:.1f}°F",
+                delta=f"Real Feel {last_day_weather['main']['feels_like']:.1f}°F",
+                delta_color="inverse"
+            )
+            # Add other metrics for day 6 as needed
+        else:
+            st.write("No weather data available for the selected day.")
+
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
@@ -453,6 +448,9 @@ if place:
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
     collect_and_display_feedback()
     col1, col2, col3, col4 = st.columns([1, 2, 1.2, 0.8], gap="medium")
+    with col1 and col2:
+        image = st.camera_input("Leave a Feedback Snapshot!")
+
     with col4:
         st.write("")
         st.write("→Creator←")
