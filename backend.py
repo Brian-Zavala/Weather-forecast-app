@@ -158,7 +158,7 @@ def collect_and_display_feedback():
     col1, col2, col3 = st.columns([0.6, 0.6, 1.8], gap='large')
 
     with col1:
-        thumbs_up = st.button("👍 Thumbs Up")
+        thumbs_up = st.button("👍")
         if thumbs_up:
             with st_lottie_spinner(thumbUp, quality="high", speed=1):
                 st.audio("cheer.mp3", format="audio/mpeg", autoplay=True)
@@ -166,7 +166,7 @@ def collect_and_display_feedback():
                 celebration1()
 
     with col2:
-        thumbs_down = st.button("👎 Thumbs Down")
+        thumbs_down = st.button("👎")
         if thumbs_down:
             with st_lottie_spinner(thumbDown, speed=1):
                 st.audio("fail.wav", format="audio/wav", autoplay=True)
