@@ -183,7 +183,8 @@ days = st.slider("5 day forecast", 1, 5,
 
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
-st.subheader(f"{selection} for {place} | {(datetime.now() + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
+st.subheader(f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')} UTC")
+
 
 
 if place:
@@ -272,7 +273,7 @@ if place:
             chart_data = []
             for dict in filtered_data_weather:
                 # Parse the UTC time
-                utc_time = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S")
+                utc_time = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
                 utc_time = utc_time.replace(tzinfo=pytz.UTC)
                 # Convert to local time
                 local_time = utc_time.astimezone(local_tz)

@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 from datetime import datetime, timedelta
-import time
+import time, pytz
 import folium
 from streamlit_lottie import st_lottie_spinner
 import json
@@ -44,24 +44,20 @@ def get_weather(place, days=None):
     return filtered_data_weather
 
 
-def get_weather_for_day(filtered_data_weather, selected_day):
-    selected_date = (datetime.now() + timedelta(days=selected_day)).strftime("%Y-%m-%d")
-    day_weather = [data for data in filtered_data_weather if data['dt_txt'].startswith(selected_date)]
-    if day_weather:
-        # Return the weather for the middle of the day (noon) if available, otherwise the first entry
-        high_weather = next((w for w in day_weather if w['dt_txt'].endswith("21:00:00")), day_weather[0])
-        return high_weather
-    return None
+def get_weather_for_day(weather_data, days):
+    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 1)).date()
+    day_data = [d for d in weather_data if datetime.strptime(d['dt_txt'], "%Y-%m-%d %H:%M:%S").replace(
+        tzinfo=pytz.UTC).date() == target_date and 6 <= datetime.strptime(d['dt_txt'], "%Y-%m-%d %H:%M:%S").hour < 18]
+    return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
-def get_weather_for_night(filtered_data_weather, selected_day):
-    selected_date = (datetime.now() + timedelta(days=selected_day)).strftime("%Y-%m-%d")
-    night_weather = [data for data in filtered_data_weather if data['dt_txt'].startswith(selected_date)]
-    if night_weather:
-        # Return the weather for the middle of the day (noon) if available, otherwise the first entry
-        low_weather = next((w for w in night_weather if w['dt_txt'].endswith("12:00:00")), night_weather[0])
-        return low_weather
-    return None
+def get_weather_for_night(weather_data, days):
+    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 1)).date()
+    night_data = [d for d in weather_data if datetime.strptime(d['dt_txt'], "%Y-%m-%d %H:%M:%S").replace(
+        tzinfo=pytz.UTC).date() == target_date and (
+                              datetime.strptime(d['dt_txt'], "%Y-%m-%d %H:%M:%S").hour < 6 or datetime.strptime(
+                          d['dt_txt'], "%Y-%m-%d %H:%M:%S").hour >= 18)]
+    return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 
 def get_radar():
