@@ -130,7 +130,9 @@ st.markdown("""
 st.markdown("""
 <style>
 div.st-emotion-cache-1gwvy71 {
-background-image: url("https://media.gettyimages.com/id/1255467655/photo/lightning-strikes-and-severe-weather-on-the-great-plains.jpg?s=612x612&w=0&k=20&c=fwozMFiGpnBhmK5Lh-l-hus3NTDl43hySIlIQlwsGfY=");
+background-image: url("https://media.gettyimages.com/
+id/1255467655/photo/lightning-strikes-and-severe-weather-on-the-great-plains.jpg?
+s=612x612&w=0&k=20&c=fwozMFiGpnBhmK5Lh-l-hus3NTDl43hySIlIQlwsGfY=");
 background-size: cover;
 background-repeat: no-repeat;
 
@@ -205,7 +207,7 @@ if place:
 
         # Sidebar content
         with st.sidebar:
-            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}")
+            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days)).strftime('%Y-%m-%d')}")
             st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,

@@ -1,14 +1,15 @@
 import requests
 import streamlit as st
 from datetime import datetime, timedelta
-import time, pytz
+import time
+import pytz
 import folium
 from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
 import functools
 
-API_KEY = "6d88b1e8f4d58057b86ef9f8375c356a"
+API_KEY = "3bf7caa87020b27d3fa66e62172e5af6"
 
 
 def cache_with_timeout(timeout_seconds):
@@ -47,16 +48,18 @@ def get_weather(place, days=None):
 def parse_datetime(dt_str):
     return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
+
 def get_weather_for_day(weather_data, days):
     target_date = (datetime.now(pytz.UTC) + timedelta(days=days)).date()
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 11 <= parse_datetime(d['dt_txt']).hour < 24]
+                and 7 <= parse_datetime(d['dt_txt']).hour < 18]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
+
 
 def get_weather_for_night(weather_data, days):
     target_date = (datetime.now(pytz.UTC) + timedelta(days=days)).date()
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                  and (parse_datetime(d['dt_txt']).hour < 11 or parse_datetime(d['dt_txt']).hour > 6)]
+                  and (parse_datetime(d['dt_txt']).hour < 16 or parse_datetime(d['dt_txt']).hour > 23)]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 
