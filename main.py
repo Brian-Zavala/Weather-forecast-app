@@ -99,6 +99,7 @@ font-weight: 800;
 </style>
 """, unsafe_allow_html=True)
 
+
 st.markdown("""
 <style>
 [class="eyeqlp53 st-emotion-cache-1pbsqtx ex0cdmw0"] {
