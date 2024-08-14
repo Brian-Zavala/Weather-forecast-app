@@ -217,7 +217,7 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(
-    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 2)).strftime('%Y-%m-%d')}")
+    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
@@ -255,7 +255,7 @@ if place:
 
         # Sidebar content
         with st.sidebar:
-            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days)).strftime('%Y-%m-%d')}")
+            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
             st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,
