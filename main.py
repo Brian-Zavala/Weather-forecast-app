@@ -1,12 +1,11 @@
 import streamlit as st
 from streamlit_lottie import st_lottie
 import json
-import requests
 from datetime import datetime, timedelta
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-from backend import (cache_with_timeout, get_weather_for_day, get_weather_for_night, get_coordinates,
+from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
                      get_radar, create_map)
 import time
