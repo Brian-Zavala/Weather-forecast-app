@@ -8,7 +8,6 @@ import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
                      get_radar, create_map, load_dotenv)
-import os
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
