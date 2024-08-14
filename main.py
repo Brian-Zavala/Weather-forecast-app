@@ -7,15 +7,13 @@ from timezonefinder import TimezoneFinder
 import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
-                     get_radar, create_map, load_dotenv)
+                     get_radar, create_map)
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
-
-load_dotenv(override=True)
 
 
 # Load Lottie files
@@ -49,12 +47,10 @@ header_bg_img = """
 <style>
 [class="st-emotion-cache-12fmjuu ezrtsby2"] {
 background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
-background-size: 10.4%;
+background-size: 23%;
 background-position: center;
 background-repeat: repeat;
 background-attachment: local; 
-
-
 }
 </style>
 """
@@ -78,12 +74,15 @@ st.markdown("""
 background-color: DeepSkyBlue;
 border-radius: 20 px
 }
+h3 {
+color: Snow;
+}
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""
 <style> 
 div.st-emotion-cache-1whx7iy p {
-color: Black;
+color: Snow;
 font-family: "Georgia", serif;
 }
 </style>
@@ -92,7 +91,7 @@ st.markdown("""
 <style> 
 
 .st-emotion-cache-1gwvy71 h2 {
-color: White;
+color: Snow;
 font-weight: 800;
 }
 </style>
@@ -168,6 +167,8 @@ def get_background_image(weather_condition):
     else:
         return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
 
+DEFAULT_BACKGROUND = "https://media1.giphy.com/media/jVT4PHlnZfGpCNZljB/source.gif"
+
 
 # Add front-end to webpage title, widgets
 # Initialize session state
@@ -176,15 +177,28 @@ if 'days' not in st.session_state:
 if 'weather_data' not in st.session_state:
     st.session_state.weather_data = None
 if 'background_image' not in st.session_state:
-    st.session_state.background_image = "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
+    st.session_state.background_image = DEFAULT_BACKGROUND
 
 
 def update_days(key):
     st.session_state.days = st.session_state[key]
     st.session_state.weather_data = None  # Reset weather data when days change
 
-
-# Set page config and other setup code...
+# Set initial background
+st.markdown(f"""
+<style>
+.stApp {{
+    background-image: url("{st.session_state.background_image}");
+    background-size: 900px;
+    back-ground-position: center;
+    background-repeat: repeat;
+}}
+.st-emotion-cache-18ni7ap {{
+    background-image: url("{st.session_state.background_image}");
+    background-size: cover;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter... ")
@@ -221,6 +235,7 @@ if place:
             .stApp {{
                 background-image: url("{st.session_state.background_image}");
                 background-size: cover;
+                background-attachment: scroll; 
             }}
             .st-emotion-cache-1gwvy71 {{
             background-image: url("{st.session_state.background_image}");
@@ -232,8 +247,7 @@ if place:
             background-position: center;
             background-repeat: repeat;
 
-       }}
-            </style>
+            }}
             """, unsafe_allow_html=True)
 
         # Sidebar content
