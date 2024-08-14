@@ -17,6 +17,7 @@ st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide",
 
 load_dotenv(override=True)
 
+
 # Load Lottie files
 def get(path: str):
     with open(path, "r") as f:
@@ -168,8 +169,8 @@ def get_background_image(weather_condition):
     else:
         return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
 
-DEFAULT_BACKGROUND = "https://media1.giphy.com/media/jVT4PHlnZfGpCNZljB/source.gif"
 
+DEFAULT_BACKGROUND = "https://media1.giphy.com/media/jVT4PHlnZfGpCNZljB/source.gif"
 
 # Add front-end to webpage title, widgets
 # Initialize session state
@@ -184,6 +185,7 @@ if 'background_image' not in st.session_state:
 def update_days(key):
     st.session_state.days = st.session_state[key]
     st.session_state.weather_data = None  # Reset weather data when days change
+
 
 # Set initial background
 st.markdown(f"""
