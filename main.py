@@ -43,26 +43,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Set background image
-page_bg_img = """
-<style>
-[data-testid="stAppViewContainer"] > .main {
-background-image: url("https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif");
-background-size: 34%;
-background-position: center;
-background-attachment: local; 
-background-repeat: repeat;
-}
-</style>
-"""
-
 header_bg_img = """
 <style>
 [class="st-emotion-cache-12fmjuu ezrtsby2"] {
-background-image: url("https://thekashmirhorizon.com/wp-content/uploads/Weather-Forecast.jpg");
+background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
+background-size: 10.4%;
 background-position: center;
 background-repeat: repeat;
-background-size: 26%;
 background-attachment: local; 
 
 
@@ -127,43 +114,58 @@ st.markdown("""
                 }
         </style>
         """, unsafe_allow_html=True)
+
 st.markdown("""
-<style>
-div.st-emotion-cache-1gwvy71 {
-background-image: url("https://media.gettyimages.com/
-id/1255467655/photo/lightning-strikes-and-severe-weather-on-the-great-plains.jpg?
-s=612x612&w=0&k=20&c=fwozMFiGpnBhmK5Lh-l-hus3NTDl43hySIlIQlwsGfY=");
-background-size: cover;
-background-repeat: no-repeat;
+       <style>
+       div.st-emotion-cache-1mi2ry5 {
+       background-image: url("{st.session_state.background_image}");
+       background-size: cover;
+       background-position: center;
+       background-repeat: no-repeat;
 
-}
-div.st-emotion-cache-1wivap2{
-color: White;
-white-space: normal;
-line-height: 41.5px;
-text-overflow: clip;
-overflow: visible;
-margin-top: 0px;
-}
-div.st-emotion-cache-1whx7iy p {
-color: Snow;
-font-size: 30px;
+       }
+       div.st-emotion-cache-1wivap2{
+       color: White;
+       white-space: normal;
+       line-height: 41.5px;
+       text-overflow: clip;
+       overflow: visible;
+       margin-top: 0px;
+       }
+       div.st-emotion-cache-1whx7iy p {
+       color: Snow;
+       font-size: 30px;
 
-}
-.st-emotion-cache-1mi2ry5 {
-background-image: url("https://i.pinimg.com/originals/5b/67/52/5b67529447c2c398759e23b7700e644a.gif");
-background-size: 100%;
-display: flex;
-}
+       }
+       .st-emotion-cache-1gwvy71 {
+       background-image: url("{st.session_state.background_image}");
+       background-size: cover;
+       background-repeat: no-repeat;
+       display: flex;
+       }
 
-[class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
-color: Snow;
-}
-</style>
-""", unsafe_allow_html=True)
+       [class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
+       color: Snow;
+       }
+       </style>
+       """, unsafe_allow_html=True)
 
-st.markdown(page_bg_img, unsafe_allow_html=True)
 st.markdown(header_bg_img, unsafe_allow_html=True)
+
+
+def get_background_image(weather_condition):
+    condition = weather_condition.lower()
+    if "clear" in condition:
+        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+    elif "cloud" in condition:
+        return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww"
+    elif "rain" in condition:
+        return "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D"
+    elif "snow" in condition:
+        return "https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D"
+    else:
+        return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
+
 
 # Add front-end to webpage title, widgets
 # Initialize session state
@@ -171,6 +173,8 @@ if 'days' not in st.session_state:
     st.session_state.days = 1
 if 'weather_data' not in st.session_state:
     st.session_state.weather_data = None
+if 'background_image' not in st.session_state:
+    st.session_state.background_image = "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
 
 
 def update_days(key):
@@ -205,6 +209,31 @@ if place:
         day_weather = get_weather_for_day(filtered_data_weather, st.session_state.days)
         night_weather = get_weather_for_night(filtered_data_weather, st.session_state.days)
 
+        # Update background image based on weather condition
+        if day_weather:
+            weather_condition = day_weather['weather'][0]['description']
+            st.session_state.background_image = get_background_image(weather_condition)
+            # Set background image
+            st.markdown(f"""
+            <style>
+            .stApp {{
+                background-image: url("{st.session_state.background_image}");
+                background-size: cover;
+            }}
+            .st-emotion-cache-1gwvy71 {{
+            background-image: url("{st.session_state.background_image}");
+            background-size: cover;
+            }}
+            div.st-emotion-cache-1mi2ry5 {{
+            background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
+            background-size: 33.3%;
+            background-position: center;
+            background-repeat: repeat;
+
+       }}
+            </style>
+            """, unsafe_allow_html=True)
+
         # Sidebar content
         with st.sidebar:
             st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days)).strftime('%Y-%m-%d')}")
@@ -214,6 +243,7 @@ if place:
                       on_change=update_days,
                       args=('sidebar_slider_days',),
                       help="Select the day")
+
             if day_weather and night_weather:
                 col1, col2 = st.columns(2)
                 with col1:
@@ -316,7 +346,6 @@ if place:
 
             st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
 
-
         if selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
             # Group the data by day
@@ -403,6 +432,7 @@ if place:
                         # Get and display weather information
                         radar_data_data = get_weather_for_time(frame_time)
 
+
                     # Function to toggle play/pause
                     def toggle_play():
                         st.session_state.playing = not st.session_state.playing
@@ -419,6 +449,7 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
+
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
