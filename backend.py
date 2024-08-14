@@ -9,7 +9,7 @@ import json
 from streamlit_extras.let_it_rain import rain
 import functools
 
-
+API_KEY = '"99244869d28dc08abf57775616f75887"'
 def cache_with_timeout(timeout_seconds):
     def decorator(func):
         cache = {}
@@ -33,7 +33,7 @@ def cache_with_timeout(timeout_seconds):
 
 @cache_with_timeout(300)  # Cache for 5 minutes
 def get_weather(place, days=None):
-    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={st.secrets["KEY"]}"
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
     response = requests.get(url)
     data = response.json()
     filtered_data_weather = data["list"]
@@ -100,7 +100,7 @@ def create_map(data, selected_frame, frame_type, place):
 
 
 def get_coordinates(place):
-    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={st.secrets["KEY"]}"
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
     response = requests.get(url)
     data = response.json()
     city_info = data['city']
