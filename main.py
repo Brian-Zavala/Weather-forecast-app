@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Load Lottie files
 def get(path: str):
