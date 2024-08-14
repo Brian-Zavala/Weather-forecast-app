@@ -8,6 +8,7 @@ import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
                      get_radar, create_map, load_dotenv)
+import os
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
@@ -16,6 +17,8 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 
 load_dotenv()
+
+
 # Load Lottie files
 def get(path: str):
     with open(path, "r") as f:
