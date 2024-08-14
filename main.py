@@ -246,7 +246,7 @@ if place:
             }}
             div.st-emotion-cache-1mi2ry5 {{
             background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
-            background-size: 33.3%;
+            background-size: 42.7%;
             background-position: center;
             background-repeat: repeat;
 
