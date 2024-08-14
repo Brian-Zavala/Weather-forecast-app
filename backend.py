@@ -8,11 +8,6 @@ from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
 import functools
-from dotenv import load_dotenv
-import os
-
-
-load_dotenv(override=True)
 
 
 def cache_with_timeout(timeout_seconds):
@@ -36,7 +31,16 @@ def cache_with_timeout(timeout_seconds):
     return decorator
 
 
-
+@cache_with_timeout(300)  # Cache for 5 minutes
+def get_weather(place, days=None):
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={st.secrets["KEY"]}"
+    response = requests.get(url)
+    data = response.json()
+    filtered_data_weather = data["list"]
+    if days is not None:
+        fc_days = 8 * days
+        filtered_data_weather = filtered_data_weather[:fc_days]
+    return filtered_data_weather
 
 
 def parse_datetime(dt_str):
@@ -96,7 +100,7 @@ def create_map(data, selected_frame, frame_type, place):
 
 
 def get_coordinates(place):
-    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={os.getenv("API_KEY")}"
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={st.secrets["KEY"]}"
     response = requests.get(url)
     data = response.json()
     city_info = data['city']

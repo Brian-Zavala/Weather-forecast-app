@@ -8,16 +8,14 @@ from timezonefinder import TimezoneFinder
 import pandas as pd
 from backend import (cache_with_timeout, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
-                     get_radar, create_map, load_dotenv)
+                     get_radar, create_map)
 import time
-import os
+
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
-
-load_dotenv(override=True)
 
 
 # Load Lottie files
