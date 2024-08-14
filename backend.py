@@ -9,7 +9,9 @@ import json
 from streamlit_extras.let_it_rain import rain
 import functools
 
-API_KEY = '"99244869d28dc08abf57775616f75887"'
+API_KEY = "99244869d28dc08abf57775616f75887"
+
+
 def cache_with_timeout(timeout_seconds):
     def decorator(func):
         cache = {}
