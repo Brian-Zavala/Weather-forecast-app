@@ -205,7 +205,7 @@ st.markdown(f"""
 
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 Location", placeholder="Enter... ")
+place = st.text_input("🏠 City | State | Zip", placeholder="Enter... ")
 
 # Main page slider
 days = st.slider("5 day forecast", 1, 5,
@@ -215,7 +215,7 @@ days = st.slider("5 day forecast", 1, 5,
                  args=('main_slider_days',),
                  help="Select the day you'd like to see")
 
-selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
+selection = st.selectbox("🌞 Weather Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(
     f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1.26)).strftime('%Y-%m-%d')}")
