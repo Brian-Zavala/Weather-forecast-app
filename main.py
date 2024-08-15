@@ -9,7 +9,7 @@ from backend import (get_weather, get_weather_for_day, get_weather_for_night, ge
                      collect_and_display_feedback,
                      get_radar, create_map)
 import time
-
+import streamlit.components.v1 as components
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -203,6 +203,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter... ")
 
@@ -217,7 +218,7 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(
-    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
+    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1.26)).strftime('%Y-%m-%d')}")
 
 if place:
     try:
@@ -255,7 +256,7 @@ if place:
 
         # Sidebar content
         with st.sidebar:
-            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 1)).strftime('%Y-%m-%d')}")
+            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 1.26)).strftime('%Y-%m-%d')}")
             st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,

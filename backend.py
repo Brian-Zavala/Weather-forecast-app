@@ -12,28 +12,7 @@ import functools
 API_KEY = "99244869d28dc08abf57775616f75887"
 
 
-def cache_with_timeout(timeout_seconds):
-    def decorator(func):
-        cache = {}
 
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            key = str(args) + str(kwargs)
-            current_time = time.time()
-            if key in cache:
-                result, timestamp = cache[key]
-                if current_time - timestamp < timeout_seconds:
-                    return result
-            result = func(*args, **kwargs)
-            cache[key] = (result, current_time)
-            return result
-
-        return wrapper
-
-    return decorator
-
-
-@cache_with_timeout(300)  # Cache for 5 minutes
 def get_weather(place, days=None):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
     response = requests.get(url)
@@ -50,14 +29,14 @@ def parse_datetime(dt_str):
 
 
 def get_weather_for_day(weather_data, days):
-    target_date = (datetime.now(pytz.UTC) + timedelta(days=days)).date()
+    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 0.26)).date()
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
                 and 7 <= parse_datetime(d['dt_txt']).hour < 19]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
 def get_weather_for_night(weather_data, days):
-    target_date = (datetime.now(pytz.UTC) + timedelta(days=days)).date()
+    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 0.26)).date()
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
                   and (parse_datetime(d['dt_txt']).hour < 22 or parse_datetime(d['dt_txt']).hour > 4)]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
