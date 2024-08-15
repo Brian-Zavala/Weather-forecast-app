@@ -205,7 +205,7 @@ st.markdown(f"""
 
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 City | State | Zip", placeholder="Enter... ")
+place = st.text_input("🏠 City | State | Zip", placeholder="Enter only one from above ⬆️ ")
 
 # Main page slider
 days = st.slider("5 day forecast", 1, 5,
