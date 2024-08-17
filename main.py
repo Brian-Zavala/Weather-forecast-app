@@ -9,7 +9,6 @@ from backend import (get_weather, get_weather_for_day, get_weather_for_night, ge
                      collect_and_display_feedback,
                      get_radar, create_map)
 import time
-import streamlit.components.v1 as components
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -44,17 +43,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-header_bg_img = """
-<style>
-[class="st-emotion-cache-12fmjuu ezrtsby2"] {
-background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
-background-size: 23%;
-background-position: center;
-background-repeat: repeat;
-background-attachment: local; 
-}
-</style>
-"""
 st.markdown("""
 <style>
 .stAudio {
@@ -72,30 +60,27 @@ background-color: Gold;
 st.markdown("""
 <style>
 [class="st-at st-av st-aw st-au st-c6 st-c7 st-ah st-c8 st-c9"] {
-background-color: DeepSkyBlue;
+background-color: red;
 border-radius: 20 px
 }
 h3 {
-color: Snow;
+color: Black;
 }
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""
 <style> 
 div.st-emotion-cache-1whx7iy p {
-color: Snow;
-font-family: "Georgia", serif;
+color: Black;
+font-family: "New Century Schoolbook", "TeX Gyre Schola", serif;
+font-weight: 675px;
 }
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""
 <style> 
 
-.st-emotion-cache-1gwvy71 h2 {
-color: Snow;
-font-weight: 800;
-}
-</style>
+
 """, unsafe_allow_html=True)
 
 
@@ -128,7 +113,8 @@ st.markdown("""
 
        }
        div.st-emotion-cache-1wivap2{
-       color: White;
+       color: #F40009;
+       font-weight: 650px;
        white-space: normal;
        line-height: 41.5px;
        text-overflow: clip;
@@ -136,8 +122,9 @@ st.markdown("""
        margin-top: 0px;
        }
        div.st-emotion-cache-1whx7iy p {
-       color: Snow;
+       color: Black;
        font-size: 30px;
+       font-weight: 675px;
 
        }
        .st-emotion-cache-1gwvy71 {
@@ -148,12 +135,12 @@ st.markdown("""
        }
 
        [class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
-       color: Snow;
+       color: red;
+       font-weight: 500px;
        }
        </style>
        """, unsafe_allow_html=True)
 
-st.markdown(header_bg_img, unsafe_allow_html=True)
 
 
 def get_background_image(weather_condition):
@@ -170,7 +157,7 @@ def get_background_image(weather_condition):
         return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
 
 
-DEFAULT_BACKGROUND = "https://media1.giphy.com/media/jVT4PHlnZfGpCNZljB/source.gif"
+DEFAULT_BACKGROUND = "https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g"
 
 # Add front-end to webpage title, widgets
 # Initialize session state
@@ -192,9 +179,9 @@ st.markdown(f"""
 <style>
 .stApp {{
     background-image: url("{st.session_state.background_image}");
-    background-size: 900px;
+    background-size: cover;
     back-ground-position: center;
-    background-repeat: repeat;
+    background-repeat: no-repeat;
 }}
 .st-emotion-cache-18ni7ap {{
     background-image: url("{st.session_state.background_image}");
@@ -241,14 +228,21 @@ if place:
                 background-size: cover;
                 background-attachment: scroll; 
             }}
+            [class="st-emotion-cache-12fmjuu ezrtsby2"] {{
+             background-image: url("{st.session_state.background_image}");
+             background-size: cover;
+             background-position: center;
+             background-repeat: no-repeat;
+            }}
+            
             .st-emotion-cache-1gwvy71 {{
             background-image: url("{st.session_state.background_image}");
             background-size: cover;
             }}
             div.st-emotion-cache-1mi2ry5 {{
-            background-image: url("https://cdn.dribbble.com/users/1761137/screenshots/3665783/media/a0c81c1353b549acc87071af39d11530.gif");
-            background-size: 42.7%;
-            background-position: center;
+            background-image: url("https://data.textstudio.com/output/sample/animated/4/0/3/6/temperature-10-16304.gif");
+            background-size: cover;
+            background-position: ;
             background-repeat: repeat;
 
             }}
@@ -512,7 +506,7 @@ st.markdown("""
 <style>
 [data-testid="stMarkdownContainer"] {
 font-family: Comic Sans MS, Comic Sans, bold;
-color: White;
+color: red;
 }  
 </style>
 """, unsafe_allow_html=True)
@@ -520,7 +514,7 @@ st.markdown("""
 <style>
 [class="st-emotion-cache-187vdiz e1nzilvr4"] {
 font-family: Comic Sans MS, Comic Sans, bold;
-color: Black;
+color: red;
 }  
 </style>
 """, unsafe_allow_html=True)
