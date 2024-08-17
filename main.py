@@ -439,7 +439,7 @@ if place:
                         time_display.write(f"Current frame time: {frame_time.strftime('%I:%M %p')}")
 
                         # Get and display weather information
-                        radar_data_data = get_weather_for_time(frame_time)
+                        get_weather_for_time(frame_time)
 
                     # Function to toggle play/pause
                     def toggle_play():
