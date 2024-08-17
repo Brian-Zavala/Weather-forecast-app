@@ -83,7 +83,6 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
-
 st.markdown("""
 <style>
 [class="eyeqlp53 st-emotion-cache-1pbsqtx ex0cdmw0"] {
@@ -142,7 +141,6 @@ st.markdown("""
        """, unsafe_allow_html=True)
 
 
-
 def get_background_image(weather_condition):
     condition = weather_condition.lower()
     if "clear" in condition:
@@ -189,7 +187,6 @@ st.markdown(f"""
 }}
 </style>
 """, unsafe_allow_html=True)
-
 
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter one ➡️ City | State | Zip")
@@ -426,12 +423,10 @@ if place:
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
 
-
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
-
 
                     # Function to update map and weather information
                     def update_map_and_info():
@@ -445,7 +440,6 @@ if place:
 
                         # Get and display weather information
                         radar_data_data = get_weather_for_time(frame_time)
-
 
                     # Function to toggle play/pause
                     def toggle_play():
@@ -463,7 +457,6 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
-
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
