@@ -189,7 +189,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # Add front-end to webpage title, widgets
-place = st.text_input("🏠 Location", placeholder="Enter one ➡️ City | State | Zip")
+place = st.text_input("🏠 Location", placeholder="Enter City...")
 
 # Main page slider
 days = st.slider("5 day forecast", 1, 5,
@@ -202,7 +202,7 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
 st.subheader(
-    f"{selection} for {place} | {(datetime.now(pytz.UTC) + timedelta(days=days - 1.26)).strftime('%Y-%m-%d')}")
+    f"{selection} for {place} | {(datetime.now() + timedelta(days=days - 1)).strftime('%A''\n''%Y-%m-%d')}")
 
 if place:
     try:
@@ -247,7 +247,10 @@ if place:
 
         # Sidebar content
         with st.sidebar:
-            st.sidebar.header(f"{(datetime.now(pytz.UTC) + timedelta(days=days - 1.26)).strftime('%Y-%m-%d')}")
+            clock_placeholder = st.empty()
+            st.sidebar.header(
+                f"{(datetime.now() + timedelta(days=days - 1)).strftime('%A''\n%Y-%m-%d')}")
+
             st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
                       value=st.session_state.days,
@@ -259,8 +262,8 @@ if place:
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric(
+                        value = f"{day_weather['main']['temp']:.1f}°F",
                         label="Day High °F",
-                        value=f"{day_weather['main']['temp']:.1f}°F",
                         delta=f"Real Feel {day_weather['main']['temp'] +
                                            day_weather['main']['feels_like'] -
                                            day_weather['main']['temp']:.1f}°F",
@@ -292,8 +295,6 @@ if place:
                         label="Sky",
                         value=f"{day_weather['weather'][0]['description']}"
                     )
-            else:
-                st.write("No weather data available for the selected day.")
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
@@ -423,10 +424,12 @@ if place:
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
 
+
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
                         return min(filtered_data_weather,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
+
 
                     # Function to update map and weather information
                     def update_map_and_info():
@@ -440,6 +443,7 @@ if place:
 
                         # Get and display weather information
                         get_weather_for_time(frame_time)
+
 
                     # Function to toggle play/pause
                     def toggle_play():
@@ -457,6 +461,7 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
+
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
@@ -511,3 +516,16 @@ color: red;
 }  
 </style>
 """, unsafe_allow_html=True)
+
+while True:
+    # Get current time in UTC
+    current_time = datetime.now()
+
+    # Format time string
+    time_str = current_time.strftime('%I:%M:%S %p')
+
+    # Update the clock placeholder
+    clock_placeholder.header(f"Current Time: {time_str}")
+
+    # Wait for a short interval before updating again
+    time.sleep(1)
