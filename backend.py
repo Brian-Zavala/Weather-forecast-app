@@ -7,7 +7,6 @@ import folium
 from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
-import functools
 
 API_KEY = "99244869d28dc08abf57775616f75887"
 
@@ -24,20 +23,22 @@ def get_weather(place, days=None):
 
 
 def parse_datetime(dt_str):
-    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone("America/Chicago"))
 
 
 def get_weather_for_day(weather_data, days):
-    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 0.26)).date()
+    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+                   timedelta(days=days)).date()
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 7 <= parse_datetime(d['dt_txt']).hour < 19]
+                and 7 >= parse_datetime(d['dt_txt']).hour < 19]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
 def get_weather_for_night(weather_data, days):
-    target_date = (datetime.now(pytz.UTC) + timedelta(days=days - 0.26)).date()
+    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+                   timedelta(days=days)).date()
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                  and (parse_datetime(d['dt_txt']).hour < 22 or parse_datetime(d['dt_txt']).hour > 4)]
+                  and (parse_datetime(d['dt_txt']).hour < 19 or parse_datetime(d['dt_txt']).hour < 4)]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 

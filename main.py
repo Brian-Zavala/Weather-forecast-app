@@ -1,4 +1,6 @@
 import streamlit as st
+import streamlit.components.v1 as components
+
 from streamlit_lottie import st_lottie
 import json
 from datetime import datetime, timedelta
@@ -7,13 +9,14 @@ from timezonefinder import TimezoneFinder
 import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback,
-                     get_radar, create_map)
+                     get_radar, create_map, parse_datetime)
 import time
 from streamlit_folium import folium_static
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
+st.cache_data.clear()
 
 
 # Load Lottie files
@@ -144,18 +147,23 @@ st.markdown("""
 def get_background_image(weather_condition):
     condition = weather_condition.lower()
     if "clear" in condition:
-        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "cloud" in condition:
-        return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww")
     elif "rain" in condition:
-        return "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "snow" in condition:
-        return "https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4"
+                ".0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D")
     else:
         return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
 
 
-DEFAULT_BACKGROUND = "https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+DEFAULT_BACKGROUND = ("https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid"
+                      "=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g")
 
 # Add front-end to webpage title, widgets
 # Initialize session state
@@ -167,9 +175,18 @@ if 'background_image' not in st.session_state:
     st.session_state.background_image = DEFAULT_BACKGROUND
 
 
-def update_days(key):
-    st.session_state.days = st.session_state[key]
-    st.session_state.weather_data = None  # Reset weather data when days change
+def filter_data_for_day(data, day):
+    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+                   timedelta(days=day - 1)).date()
+    return [d for d in data if parse_datetime(d['dt_txt']).date() == target_date]
+
+
+def update_days_main():
+    st.session_state.days = st.session_state.main_slider_days
+
+
+def update_days_sidebar():
+    st.session_state.days = st.session_state.sidebar_slider_days
 
 
 # Set initial background
@@ -188,6 +205,23 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+current_time = st.empty
+# JavaScript to update time
+js_code = """
+<div id="current_time"></div>
+<script>
+function updateTime() {
+    var now = new Date();
+    var options = { timeZone: 'America/Chicago',
+    hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    var formattedTime = now.toLocaleString('en-US', options);
+    document.getElementById('current_time').innerHTML = 'Current Time: ' + formattedTime;
+}
+updateTime();
+setInterval(updateTime, 1000);
+</script>
+"""
+font_color = '#DA291C'
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
@@ -195,23 +229,25 @@ place = st.text_input("🏠 Location", placeholder="Enter City...")
 days = st.slider("5 day forecast", 1, 5,
                  key="main_slider_days",
                  value=st.session_state.days,
-                 on_change=update_days,
-                 args=('main_slider_days',),
+                 on_change=update_days_main,
                  help="Select the day you'd like to see")
 
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
-st.subheader(
-    f"{selection} for {place} | {(datetime.now(pytz.utc) + timedelta(days=days - 1, hours=- 5)).strftime('%A''\n''%Y-%m-%d')}")
+selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+                 timedelta(days=st.session_state.days - 1))
+
+st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        filtered_data_weather = get_weather(place, st.session_state.days)
+        all_weather_data = get_weather(place, days)
+        filtered_data_weather = filter_data_for_day(all_weather_data, st.session_state.days)
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(filtered_data_weather, st.session_state.days)
-        night_weather = get_weather_for_night(filtered_data_weather, st.session_state.days)
+        day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
+        night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
 
         # Update background image based on weather condition
         if day_weather:
@@ -245,56 +281,53 @@ if place:
             }}
             """, unsafe_allow_html=True)
 
-        # Sidebar content
-        with st.sidebar:
-            clock_placeholder = st.empty()
-            st.sidebar.header(
-                f"{(datetime.now() + timedelta(days=days - 1, hours=- 5)).strftime('%A''\n%Y-%m-%d')}")
+            with st.sidebar:
+                components.html(js_code, height=40)
+                st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
-            st.slider(" 5 Day Forecast ", 1, 5,
-                      key="sidebar_slider_days",
-                      value=st.session_state.days,
-                      on_change=update_days,
-                      args=('sidebar_slider_days',),
-                      help="Select the day")
+                st.slider(" 5 Day Forecast ", 1, 5,
+                          key="sidebar_slider_days",
+                          value=st.session_state.days,
+                          on_change=update_days_sidebar,
+                          help="Select the day")
 
-            if day_weather and night_weather:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric(
-                        value = f"{day_weather['main']['temp']:.1f}°F",
-                        label="Day High °F",
-                        delta=f"Real Feel {day_weather['main']['temp'] +
-                                           day_weather['main']['feels_like'] -
-                                           day_weather['main']['temp']:.1f}°F",
-                        delta_color="inverse"
-                    )
+                if day_weather and night_weather:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric(
+                            value=f"{day_weather['main']['temp']:.1f}°F",
+                            label="Day High °F",
+                            delta=f"Real Feel {day_weather['main']['temp'] +
+                                               day_weather['main']['feels_like'] -
+                                               day_weather['main']['temp']:.1f}°F",
+                            delta_color="inverse"
+                        )
 
-                    st.metric(
-                        label="Day Low °F",
-                        value=f"{night_weather['main']['temp']:.1f}°F",
-                        delta=f"Real Feel {night_weather['main']['temp'] +
-                                           night_weather['main']['feels_like'] -
-                                           night_weather['main']['temp']:.1f}°F",
-                        delta_color="inverse"
-                    )
-                    st.metric(
-                        label="Humidity",
-                        value=f"{day_weather['main']['humidity']}%"
-                    )
-                with col2:
-                    st.metric(
-                        label="Wind Speed",
-                        value=f"{day_weather['wind']['speed']:.1f} MPH",
-                        delta=f"Wind Gust {day_weather['wind']['speed'] +
-                                           day_weather['wind']['gust']:.1f} MPH",
-                        delta_color="inverse"
-                    )
+                        st.metric(
+                            label="Day Low °F",
+                            value=f"{night_weather['main']['temp']:.1f}°F",
+                            delta=f"Real Feel {night_weather['main']['temp'] +
+                                               night_weather['main']['feels_like'] -
+                                               night_weather['main']['temp']:.1f}°F",
+                            delta_color="inverse"
+                        )
+                        st.metric(
+                            label="Humidity",
+                            value=f"{day_weather['main']['humidity']}%"
+                        )
+                    with col2:
+                        st.metric(
+                            label="Wind Speed",
+                            value=f"{day_weather['wind']['speed']:.1f} MPH",
+                            delta=f"Wind Gust {day_weather['wind']['speed'] +
+                                               day_weather['wind']['gust']:.1f} MPH",
+                            delta_color="inverse"
+                        )
 
-                    st.metric(
-                        label="Sky",
-                        value=f"{day_weather['weather'][0]['description']}"
-                    )
+                        st.metric(
+                            label="Sky",
+                            value=f"{day_weather['weather'][0]['description']}"
+                        )
 
         # Get the timezone for the given coordinates
         tf = TimezoneFinder()
@@ -309,11 +342,7 @@ if place:
             date = []
             chart_data = []
             for dict in filtered_data_weather:
-                # Parse the UTC time
-                utc_time = datetime.strptime(dict["dt_txt"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
-                utc_time = utc_time.replace(tzinfo=pytz.UTC)
-                # Convert to local time
-                local_time = utc_time.astimezone(local_tz)
+                local_time = parse_datetime(dict["dt_txt"])
                 fixed_time = local_time.strftime("%m-%d  -   %I:%M %p")
                 date.append(fixed_time)
 
@@ -360,31 +389,29 @@ if place:
 
         if selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
-            # Group the data by day
-            daily_conditions = {}
-            for data_point in filtered_data_weather:
-                utc_time = datetime.strptime(data_point["dt_txt"], "%Y-%m-%d %H:%M:%S")
-                utc_time = utc_time.replace(tzinfo=pytz.UTC)
-                local_time = utc_time.astimezone(local_tz)
-                date = local_time.strftime("%Y-%m-%d")
-                time = local_time.strftime("%I:%M %p")
-                temperature = data_point["main"]["temp"]
-                condition = data_point["weather"][0]["main"]
-                if date not in daily_conditions:
-                    daily_conditions[date] = {"condition": condition, "time": time, "temperature": temperature}
 
-            # Create columns for each day
-            cols = st.columns(len(daily_conditions))
+            # Use the filtered data for the selected day
+            if filtered_data_weather:
+                # Group the data by day
+                daily_conditions = {}
+                for data_point in filtered_data_weather:
+                    local_time = parse_datetime(data_point["dt_txt"])
+                    date = local_time.date()
+                    if date not in daily_conditions:
+                        daily_conditions[date] = {
+                            "condition": data_point["weather"][0]["main"],
+                            "time": local_time.strftime("%I:%M %p"),
+                            "temperature": data_point["main"]["temp"]
+                        }
 
-            # Display the weather condition for each day
-            for i, (date, info) in enumerate(daily_conditions.items()):
-                with cols[i]:
-                    st.write(f"{date} | {info['time']} ({timezone_str})")
+                # Display the weather condition for each day
+                for date, info in daily_conditions.items():
+                    st.write(f"{date.strftime('%Y-%m-%d')} | {info['time']} ({timezone_str})")
                     st.write(info["condition"])
                     st.write(f"{info['temperature']}°F")
 
                     if info['condition'] in images:
-                        st_lottie(images[info['condition']], height=200, key=f"lottie_{i}")
+                        st_lottie(images[info['condition']], height=200, key=f"lottie_{st.session_state.days}")
                         if "Clear" in info['condition'] and "Clear" in images:
                             st.audio("Clear.mp3", format="audio/mpeg",
                                      start_time=0, end_time=30, loop=True, autoplay=True)
@@ -397,9 +424,10 @@ if place:
                         elif "Snow" in info['condition'] and "Snow" in images:
                             st.audio("Snow.mp3", format="audio/mpeg",
                                      start_time=0, end_time=30, loop=True, autoplay=True)
-
                     else:
                         st.write(f"No animation for {info['condition']}")
+                else:
+                    st.write("No weather data available for the selected day.")
 
 
         def find_closest_time(target_time, time_list):
@@ -488,7 +516,7 @@ if place:
     except KeyError:
         st.write("This place does not exist")
 
-    # Add the feedback system
+# Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
     collect_and_display_feedback()
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1], gap="large")
@@ -516,16 +544,3 @@ color: red;
 }  
 </style>
 """, unsafe_allow_html=True)
-
-while True:
-    # Get current time in UTC
-    current_time = datetime.now()
-
-    # Format time string
-    time_str = current_time.strftime('%I:%M:%S %p')
-
-    # Update the clock placeholder
-    clock_placeholder.header(f"Current Time: {time_str}")
-
-    # Wait for a short interval before updating again
-    time.sleep(1)
