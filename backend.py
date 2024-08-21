@@ -27,18 +27,18 @@ def parse_datetime(dt_str):
 
 
 def get_weather_for_day(weather_data, days):
-    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+    target_date = (datetime.now(pytz.timezone("UTC")).astimezone() +
                    timedelta(days=days)).date()
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 7 >= parse_datetime(d['dt_txt']).hour < 19]
+                and 14 <= parse_datetime(d['dt_txt']).hour < 22]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
 def get_weather_for_night(weather_data, days):
-    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
+    target_date = (datetime.now(pytz.timezone("UTC")).astimezone() +
                    timedelta(days=days)).date()
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                  and (parse_datetime(d['dt_txt']).hour < 19 or parse_datetime(d['dt_txt']).hour < 4)]
+                  and (parse_datetime(d['dt_txt']).hour <= 19 or parse_datetime(d['dt_txt']).hour < 3 )]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 
