@@ -215,13 +215,13 @@ function updateTime() {
     var options = { timeZone: 'America/Chicago',
     hour: '2-digit', minute: '2-digit', second: '2-digit' };
     var formattedTime = now.toLocaleString('en-US', options);
-    document.getElementById('current_time').innerHTML = 'Current Time: ' + formattedTime;
+    document.getElementById('current_time').innerHTML = 'Time: ' + formattedTime;
 }
 updateTime();
 setInterval(updateTime, 1000);
 </script>
 """
-font_color = '#DA291C'
+
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
@@ -242,7 +242,7 @@ st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-
 if place:
     try:
         # Fetch weather data and coordinates
-        all_weather_data = get_weather(place, days)
+        all_weather_data = get_weather(place, days=5)
         filtered_data_weather = filter_data_for_day(all_weather_data, st.session_state.days)
         lat, lon = get_coordinates(place)
 
@@ -282,7 +282,7 @@ if place:
             """, unsafe_allow_html=True)
 
             with st.sidebar:
-                components.html(js_code, height=40)
+                components.html(js_code, height=50)
                 st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
                 st.slider(" 5 Day Forecast ", 1, 5,

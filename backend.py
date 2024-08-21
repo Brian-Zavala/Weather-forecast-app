@@ -23,7 +23,7 @@ def get_weather(place, days=None):
 
 
 def parse_datetime(dt_str):
-    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone("US/Central"))
+    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
 
 def get_weather_for_day(weather_data, days):
