@@ -149,53 +149,71 @@ def get_background_image(weather_condition):
 
     # Clear skies
     if "clear" in condition:
-        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
 
     # Cloudy conditions
     elif "broken clouds" in condition:
-        return "https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww")
     elif "scattered clouds" in condition:
-        return "https://img.freepik.com/free-photo/blue-sky-with-windy-clouds-vertical-shot_23-2148824938.jpg?t=st=1724337516~exp=1724341116~hmac=901fcc704543ef6fb3a62a22198891f8fbfe4e77456f814737827f9496f4bd35&w=740"
+        return ("https://img.freepik.com/free-photo/blue-sky-with-windy-clouds-vertical-shot_23-2148824938.jpg?t=st"
+                "=1724337516~exp=1724341116~hmac=901fcc704543ef6fb3a62a22198891f8fbfe4e77456f814737827f9496f4bd35&w"
+                "=740")
     elif "few clouds" in condition:
-        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "overcast" in condition:
-        return "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3ZlcmNhc3QlMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid"
+                "=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3ZlcmNhc3QlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "cloud" in condition:
-        return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww")
 
     # Rainy conditions
     elif "light rain" in condition:
-        return "https://images.unsplash.com/photo-1438449805896-28a666819a20?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bGlnaHQlMjByYWlufGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1438449805896-28a666819a20?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bGlnaHQlMjByYWlufGVufDB8fDB8fHww")
     elif "moderate rain" in condition:
-        return "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW9kZXJhdGUlMjByYWlufGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW9kZXJhdGUlMjByYWlufGVufDB8fDB8fHww")
     elif "heavy rain" in condition:
-        return "https://images.unsplash.com/photo-1620385019253-b051a26048ce?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjByYWlufGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1620385019253-b051a26048ce?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjByYWlufGVufDB8fDB8fHww")
     elif "rain" in condition:
-        return "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D")
 
     # Thunderstorm conditions
     elif "thunderstorm" in condition:
-        return "https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGh1bmRlcnN0b3JtfGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGh1bmRlcnN0b3JtfGVufDB8fDB8fHww")
 
     # Snowy conditions
     elif "light snow" in condition:
-        return "https://images.unsplash.com/photo-1542601098-8fc114e148e2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGlnaHQlMjBzbm93fGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1542601098-8fc114e148e2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4"
+                ".0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGlnaHQlMjBzbm93fGVufDB8fDB8fHww")
     elif "heavy snow" in condition:
-        return "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjBzbm93fGVufDB8fDB8fHww"
+        return ("https://images.unsplash.com/photo-1517299321609-52687d1bc55a?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjBzbm93fGVufDB8fDB8fHww")
     elif "snow" in condition:
-        return "https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4"
+                ".0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D")
 
     # Misty or foggy conditions
     elif "mist" in condition or "fog" in condition:
-        return "https://images.unsplash.com/photo-1543968996-ee822b8176ba?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWlzdHl8ZW58MHx8MHx8fDA%3D"
+        return ("https://images.unsplash.com/photo-1543968996-ee822b8176ba?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4"
+                ".0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWlzdHl8ZW58MHx8MHx8fDA%3D")
 
     # Hazy conditions
     elif "haze" in condition:
-        return "https://w0.peakpx.com/wallpaper/1022/864/HD-wallpaper-2-person-walking-on-pathway-between-trees-during-foggy-weather.jpg"
+        return ("https://w0.peakpx.com/wallpaper/1022/864/HD-wallpaper-2-person-walking-on-pathway-between-trees"
+                "-during-foggy-weather.jpg")
 
     # Default image for any other condition
     else:
-        return "https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+        return ("https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid"
+                "=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g")
 
 
 DEFAULT_BACKGROUND = ("https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid"
