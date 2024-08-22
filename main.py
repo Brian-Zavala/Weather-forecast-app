@@ -16,6 +16,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
+st.cache_data.clear()
 
 
 # Load Lottie files
@@ -173,12 +174,14 @@ if 'weather_data' not in st.session_state:
 if 'background_image' not in st.session_state:
     st.session_state.background_image = DEFAULT_BACKGROUND
 
+
 def update_days_main():
     st.session_state.days = st.session_state.main_slider_days
 
 
 def update_days_sidebar():
     st.session_state.days = st.session_state.sidebar_slider_days
+
 
 # Set initial background
 st.markdown(f"""
@@ -233,7 +236,7 @@ st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-
 if place:
     try:
         # Fetch weather data and coordinates
-        all_weather_data = get_weather(place, days=None)
+        all_weather_data = get_weather(place, days=5)
 
         lat, lon = get_coordinates(place)
 
@@ -243,8 +246,8 @@ if place:
         local_tz = pytz.timezone(timezone_str)
 
         # Get weather for the selected day
-        day_weather = get_weather_for_day(all_weather_data, days)
-        night_weather = get_weather_for_night(all_weather_data, days)
+        day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
+        night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
         if day_weather:
             # Update background image based on weather condition
             weather_condition = day_weather['weather'][0]['description']
@@ -286,7 +289,6 @@ if place:
                       value=st.session_state.days,
                       on_change=update_days_sidebar,
                       help="Select the day")
-            # Process weather data for the selected day
 
             day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
             night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
@@ -349,27 +351,23 @@ if place:
 
                 df = pd.DataFrame(chart_data)
 
-                col1, col2 = st.columns(2)
+                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
+                                    subplot_titles="Temperature and Real Feel")
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"))
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"))
+                fig.update_layout(height=400, title_text="Temperature and Real Feel")
+                fig.update_xaxes(title_text="Time", tickangle=-45)
+                fig.update_yaxes(title_text="Temperature (°F)")
+                st.plotly_chart(fig, use_container_width=True)
 
-                with col1:
-                    fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
-                                        subplot_titles="Temperature and Real Feel")
-                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"))
-                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"))
-                    fig.update_layout(height=400, title_text="Temperature and Real Feel")
-                    fig.update_xaxes(title_text="Time", tickangle=-45)
-                    fig.update_yaxes(title_text="Temperature (°F)")
-                    st.plotly_chart(fig, use_container_width=True)
-
-                with col2:
-                    fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
-                                        subplot_titles="Humidity and Wind Speed")
-                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity", mode="lines"))
-                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed", mode="lines"))
-                    fig.update_layout(height=400, title_text="Humidity and Wind Speed")
-                    fig.update_xaxes(title_text="Time", tickangle=-45)
-                    fig.update_yaxes(title_text="Humidity (%) / Wind Speed (mph)")
-                    st.plotly_chart(fig, use_container_width=True)
+                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
+                                    subplot_titles="Humidity and Wind Speed")
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity", mode="lines"))
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed", mode="lines"))
+                fig.update_layout(height=400, title_text="Humidity and Wind Speed")
+                fig.update_xaxes(title_text="Time", tickangle=-45)
+                fig.update_yaxes(title_text="Humidity (%) / Wind Speed (mph)")
+                st.plotly_chart(fig, use_container_width=True)
 
                 # New chart for additional weather conditions
                 fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
@@ -471,7 +469,7 @@ if place:
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
 
 
-                   # Function to update map and weather information
+                    # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
                         m = create_map(radar_data, current_frame, "past", place)
