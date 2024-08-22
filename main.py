@@ -335,6 +335,7 @@ if place:
             if not all_weather_data:
                 st.write("No weather data available for the selected day(s).")
             else:
+
                 chart_data = []
                 for data in all_weather_data:
                     local_time = parse_datetime(data["dt_txt"]).astimezone(local_tz)
@@ -391,8 +392,8 @@ if place:
                 # Display raw data in a table (optional)
                 if st.checkbox("Show raw data"):
                     st.write(df)
+                st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
 
-                    st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
 
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
