@@ -394,7 +394,7 @@ if place:
                 for data in all_weather_data:
                     local_time = parse_datetime(data["dt_txt"]).astimezone()
                     chart_data.append({
-                        "Time/Date": local_time.strftime("%m-%d %I:%M %p"),
+                        "Time/Date": local_time.strftime("%a %I:%M %p"),
                         "Temperature": data["main"]["temp"],
                         "Real Feel": data["main"]["feels_like"],
                         "Humidity": data["main"]["humidity"],
