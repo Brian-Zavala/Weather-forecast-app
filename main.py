@@ -1,6 +1,5 @@
 import streamlit as st
 import streamlit.components.v1 as components
-
 from streamlit_lottie import st_lottie
 import json
 from datetime import datetime, timedelta

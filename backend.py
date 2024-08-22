@@ -13,7 +13,6 @@ import pandas as pd
 
 API_KEY = "99244869d28dc08abf57775616f75887"
 
-
 def get_weather(place, days=None):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
     response = requests.get(url)
