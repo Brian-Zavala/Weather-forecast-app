@@ -220,7 +220,7 @@ setInterval(updateTime, 1000);
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
 # Main page slider
-days = st.slider("Future 5 day forecast", 1, 5,
+days = st.slider("5 day forecast", 1, 5,
                  key="main_slider_days",
                  value=st.session_state.days,
                  on_change=update_days_main,
@@ -229,7 +229,7 @@ days = st.slider("Future 5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
 selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                 timedelta(days=st.session_state.days))
+                 timedelta(days=st.session_state.days - 1))
 
 st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
