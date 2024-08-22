@@ -23,20 +23,22 @@ def get_weather(place, days=None):
 
 
 def parse_datetime(dt_str):
-    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone("America/Chicago"))
 
 
 def get_weather_for_day(weather_data, days):
-    target_date = (datetime.now(pytz.timezone("US/Central")) +
-                   timedelta(days=days)).date()
+    if not weather_data:
+        return None
+    target_date = parse_datetime(weather_data[0]['dt_txt']).date() + timedelta(days=days)
     day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 12 <= parse_datetime(d['dt_txt']).hour < 19]
+                and 12 <= parse_datetime(d['dt_txt']).hour < 24]
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
 def get_weather_for_night(weather_data, days):
-    target_date = (datetime.now(pytz.timezone("US/Central")) +
-                   timedelta(days=days)).date()
+    if not weather_data:
+        return None
+    target_date = parse_datetime(weather_data[0]['dt_txt']).date() + timedelta(days=days)
     night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
                   and (parse_datetime(d['dt_txt']).hour < 24 or parse_datetime(d['dt_txt']).hour < 9)]
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None

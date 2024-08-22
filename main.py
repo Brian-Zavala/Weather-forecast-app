@@ -16,7 +16,6 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
-st.cache_data.clear()
 
 
 # Load Lottie files
@@ -174,20 +173,12 @@ if 'weather_data' not in st.session_state:
 if 'background_image' not in st.session_state:
     st.session_state.background_image = DEFAULT_BACKGROUND
 
-
-def filter_data_for_day(data, day):
-    target_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                   timedelta(days=day - 1)).date()
-    return [d for d in data if parse_datetime(d['dt_txt']).date() == target_date]
-
-
 def update_days_main():
     st.session_state.days = st.session_state.main_slider_days
 
 
 def update_days_sidebar():
     st.session_state.days = st.session_state.sidebar_slider_days
-
 
 # Set initial background
 st.markdown(f"""
@@ -226,7 +217,7 @@ setInterval(updateTime, 1000);
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
 # Main page slider
-days = st.slider("5 day forecast", 1, 5,
+days = st.slider("Future 5 day forecast", 1, 5,
                  key="main_slider_days",
                  value=st.session_state.days,
                  on_change=update_days_main,
@@ -235,22 +226,27 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
 selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                 timedelta(days=st.session_state.days - 1))
+                 timedelta(days=st.session_state.days))
 
 st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        all_weather_data = get_weather(place, days=5)
-        filtered_data_weather = filter_data_for_day(all_weather_data, st.session_state.days)
+        all_weather_data = get_weather(place, days=None)
+
         lat, lon = get_coordinates(place)
 
-        day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
-        night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
+        # Get the timezone for the given coordinates
+        tf = TimezoneFinder()
+        timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
+        local_tz = pytz.timezone(timezone_str)
 
-        # Update background image based on weather condition
+        # Get weather for the selected day
+        day_weather = get_weather_for_day(all_weather_data, days)
+        night_weather = get_weather_for_night(all_weather_data, days)
         if day_weather:
+            # Update background image based on weather condition
             weather_condition = day_weather['weather'][0]['description']
             st.session_state.background_image = get_background_image(weather_condition)
             # Set background image
@@ -281,158 +277,174 @@ if place:
             }}
             """, unsafe_allow_html=True)
 
-            with st.sidebar:
-                components.html(js_code, height=50)
-                st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
+        with st.sidebar:
+            components.html(js_code, height=50, scrolling=True)
+            st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
-                st.slider(" 5 Day Forecast ", 1, 5,
-                          key="sidebar_slider_days",
-                          value=st.session_state.days,
-                          on_change=update_days_sidebar,
-                          help="Select the day")
+            st.slider(" 5 Day Forecast ", 1, 5,
+                      key="sidebar_slider_days",
+                      value=st.session_state.days,
+                      on_change=update_days_sidebar,
+                      help="Select the day")
+            # Process weather data for the selected day
 
-                if day_weather and night_weather:
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric(
-                            value=f"{day_weather['main']['temp']:.1f}°F",
-                            label="Day High °F",
-                            delta=f"Real Feel {day_weather['main']['temp'] +
-                                               day_weather['main']['feels_like'] -
-                                               day_weather['main']['temp']:.1f}°F",
-                            delta_color="inverse"
-                        )
+            day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
+            night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
 
-                        st.metric(
-                            label="Day Low °F",
-                            value=f"{night_weather['main']['temp']:.1f}°F",
-                            delta=f"Real Feel {night_weather['main']['temp'] +
-                                               night_weather['main']['feels_like'] -
-                                               night_weather['main']['temp']:.1f}°F",
-                            delta_color="inverse"
-                        )
-                        st.metric(
-                            label="Humidity",
-                            value=f"{day_weather['main']['humidity']}%"
-                        )
-                    with col2:
-                        st.metric(
-                            label="Wind Speed",
-                            value=f"{day_weather['wind']['speed']:.1f} MPH",
-                            delta=f"Wind Gust {day_weather['wind']['speed'] +
-                                               day_weather['wind']['gust']:.1f} MPH",
-                            delta_color="inverse"
-                        )
+            if day_weather and night_weather:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric(
+                        value=f"{day_weather['main']['temp']:.1f}°F",
+                        label="Day High °F",
+                        delta=f"Real Feel {day_weather['main']['temp'] +
+                                           day_weather['main']['feels_like'] -
+                                           day_weather['main']['temp']:.1f}°F",
+                        delta_color="inverse"
+                    )
 
-                        st.metric(
-                            label="Sky",
-                            value=f"{day_weather['weather'][0]['description']}"
-                        )
+                    st.metric(
+                        label="Day Low °F",
+                        value=f"{night_weather['main']['temp']:.1f}°F",
+                        delta=f"Real Feel {night_weather['main']['temp'] +
+                                           night_weather['main']['feels_like'] -
+                                           night_weather['main']['temp']:.1f}°F",
+                        delta_color="inverse"
+                    )
+                    st.metric(
+                        label="Humidity",
+                        value=f"{day_weather['main']['humidity']}%"
+                    )
+                with col2:
+                    st.metric(
+                        label="Wind Speed",
+                        value=f"{day_weather['wind']['speed']:.1f} MPH",
+                        delta=f"Wind Gust {day_weather['wind']['speed'] +
+                                           day_weather['wind']['gust']:.1f} MPH",
+                        delta_color="inverse"
+                    )
 
-        # Get the timezone for the given coordinates
-        tf = TimezoneFinder()
-        timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
-        local_tz = pytz.timezone(timezone_str)
+                    st.metric(
+                        label="Sky",
+                        value=f"{day_weather['weather'][0]['description']}"
+                    )
 
         if selection == "Temperature":
-            temperature = [dict["main"]["temp"] for dict in filtered_data_weather]
-            humidity = [dict["main"]["humidity"] for dict in filtered_data_weather]
-            wind = [dict["wind"]["speed"] for dict in filtered_data_weather]
-            real_feel = [dict["main"]["feels_like"] for dict in filtered_data_weather]
-            date = []
-            chart_data = []
-            for dict in filtered_data_weather:
-                local_time = parse_datetime(dict["dt_txt"])
-                fixed_time = local_time.strftime("%m-%d  -   %I:%M %p")
-                date.append(fixed_time)
+            if not all_weather_data:
+                st.write("No weather data available for the selected day(s).")
+            else:
+                chart_data = []
+                for data in all_weather_data:
+                    local_time = parse_datetime(data["dt_txt"]).astimezone(local_tz)
+                    chart_data.append({
+                        "Time/Date": local_time.strftime("%m-%d %I:%M %p"),
+                        "Temperature": data["main"]["temp"],
+                        "Real Feel": data["main"]["feels_like"],
+                        "Humidity": data["main"]["humidity"],
+                        "Wind Speed": data["wind"]["speed"],
+                        "Clouds": data["clouds"]["all"],
+                        "Pressure": data["main"]["pressure"],
+                        "Pop": data.get("pop", 0) * 100  # Convert probability of precipitation to percentage
+                    })
 
-                chart_data.append({
-                    "Time/Date": local_time.strftime("%m-%d %I:%M %p"),
-                    "Temperature": dict["main"]["temp"],
-                    "Real Feel": dict["main"]["feels_like"]
-                })
+                df = pd.DataFrame(chart_data)
 
-            col6, col7 = st.columns([2, 2])
+                col1, col2 = st.columns(2)
 
-            with col6:
-                df = pd.DataFrame(chart_data)  # Create a temperature line graph
-                fig = make_subplots(rows=1, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                                    subplot_titles=("Temperature", "Real Feel Temperature"))
+                with col1:
+                    fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
+                                        subplot_titles="Temperature and Real Feel")
+                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"))
+                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"))
+                    fig.update_layout(height=400, title_text="Temperature and Real Feel")
+                    fig.update_xaxes(title_text="Time", tickangle=-45)
+                    fig.update_yaxes(title_text="Temperature (°F)")
+                    st.plotly_chart(fig, use_container_width=True)
 
+                with col2:
+                    fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
+                                        subplot_titles="Humidity and Wind Speed")
+                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity", mode="lines"))
+                    fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed", mode="lines"))
+                    fig.update_layout(height=400, title_text="Humidity and Wind Speed")
+                    fig.update_xaxes(title_text="Time", tickangle=-45)
+                    fig.update_yaxes(title_text="Humidity (%) / Wind Speed (mph)")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                # New chart for additional weather conditions
+                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
+                                    subplot_titles="Additional Weather Conditions")
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Clouds"], name="Cloud Coverage", mode="lines"))
                 fig.add_trace(
-                    go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"),
-                    row=1, col=1
-                )
-                fig.add_trace(
-                    go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"),
-                    row=1, col=1
-                )
+                    go.Scatter(x=df["Time/Date"], y=df["Pop"], name="Precipitation Probability", mode="lines"))
+                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Pressure"], name="Atmospheric Pressure", mode="lines",
+                                         yaxis="y2"))
+                fig.update_xaxes(title_text="Time", tickangle=-45)
+
                 fig.update_layout(
-                    height=350,  # Adjust the height as needed
-                    hovermode="x unified",
-                    xaxis_title=f"Date (Local Time - {timezone_str})",
-                    xaxis_tickangle=-45,
+                    height=400,
+                    title_text="Additional Weather Conditions",
+                    yaxis=dict(title="Percentage (%)"),
+                    yaxis2=dict(title="Pressure (hPa)", overlaying="y", side="right")
                 )
+                fig.update_xaxes(title_text="Time")
+                st.plotly_chart(fig, use_container_width=True)
 
-                fig.update_yaxes(title_text="Temperature °F", row=1, col=1)
-                fig.update_yaxes(title_text="Real Feel °F", row=1, col=1)
+                # Display raw data in a table (optional)
+                if st.checkbox("Show raw data"):
+                    st.write(df)
 
-                st.plotly_chart(fig, use_container_width=True, theme="streamlit")
+                    st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
 
-            with col7:
-                humidity_data = pd.DataFrame({"Time/Date": date, "Humidity %": humidity, "Wind Speed MPH": wind})
-
-                st.area_chart(data=humidity_data, x="Time/Date", y=["Humidity %", "Wind Speed MPH"],
-                              use_container_width=True)
-
-            st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
-
-        if selection == "Sky-View":
+        elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
 
-            # Use the filtered data for the selected day
-            if filtered_data_weather:
-                # Group the data by day
+            if all_weather_data:
+                first_data_date = parse_datetime(all_weather_data[0]['dt_txt']).date()
+
                 daily_conditions = {}
-                for data_point in filtered_data_weather:
-                    local_time = parse_datetime(data_point["dt_txt"])
-                    date = local_time.date()
-                    if date not in daily_conditions:
-                        daily_conditions[date] = {
-                            "condition": data_point["weather"][0]["main"],
+                for i in range(st.session_state.days):
+                    target_date = first_data_date + timedelta(days=i)
+                    day_data = [d for d in all_weather_data if parse_datetime(d['dt_txt']).date() == target_date]
+
+                    if day_data:
+                        mid_day_data = max(day_data, key=lambda x: parse_datetime(x['dt_txt']).hour)
+                        local_time = parse_datetime(mid_day_data["dt_txt"]).astimezone(local_tz)
+
+                        daily_conditions[target_date] = {
+                            "condition": mid_day_data["weather"][0]["main"],
                             "time": local_time.strftime("%I:%M %p"),
-                            "temperature": data_point["main"]["temp"]
+                            "temperature": mid_day_data["main"]["temp"]
                         }
 
-                # Display the weather condition for each day
-                for date, info in daily_conditions.items():
-                    st.write(f"{date.strftime('%Y-%m-%d')} | {info['time']} ({timezone_str})")
-                    st.write(info["condition"])
-                    st.write(f"{info['temperature']}°F")
+                cols = st.columns(len(daily_conditions))
+                for i, (date, info) in enumerate(daily_conditions.items()):
+                    with cols[i]:
+                        st.write(f"**{date.strftime('%A, %B %d')}**")
+                        st.write(f"Time: {info['time']}")
+                        st.write(f"Condition: {info['condition']}")
+                        st.write(f"Temperature: {info['temperature']:.1f}°F")
 
-                    if info['condition'] in images:
-                        st_lottie(images[info['condition']], height=200, key=f"lottie_{st.session_state.days}")
-                        if "Clear" in info['condition'] and "Clear" in images:
-                            st.audio("Clear.mp3", format="audio/mpeg",
-                                     start_time=0, end_time=30, loop=True, autoplay=True)
-                        elif "Rain" in info['condition'] and "Rain" in images:
-                            st.audio("Rain.wav", format="audio/wav",
-                                     start_time=0, end_time=30, loop=True, autoplay=True)
-                        elif "Clouds" in info["condition"] and "Clouds" in images:
-                            st.audio("Clouds.wav", format="audio/wav",
-                                     start_time=0, end_time=30, loop=True, autoplay=True)
-                        elif "Snow" in info['condition'] and "Snow" in images:
-                            st.audio("Snow.mp3", format="audio/mpeg",
-                                     start_time=0, end_time=30, loop=True, autoplay=True)
-                    else:
-                        st.write(f"No animation for {info['condition']}")
-                else:
-                    st.write("No weather data available for the selected day.")
+                        if info['condition'] in images:
+                            st_lottie(images[info['condition']], height=200, key=f"lottie_{i}")
+                            if "Clear" in info['condition'] and "Clear" in images:
+                                st.audio("Clear.mp3", format="audio/mpeg",
+                                         start_time=0, end_time=30, loop=True, autoplay=True)
+                            elif "Rain" in info['condition'] and "Rain" in images:
+                                st.audio("Rain.wav", format="audio/wav",
+                                         start_time=0, end_time=30, loop=True, autoplay=True)
+                            elif "Clouds" in info["condition"] and "Clouds" in images:
+                                st.audio("Clouds.wav", format="audio/wav",
+                                         start_time=0, end_time=30, loop=True, autoplay=True)
+                            elif "Snow" in info['condition'] and "Snow" in images:
+                                st.audio("Snow.mp3", format="audio/mpeg",
+                                         start_time=0, end_time=30, loop=True, autoplay=True)
+                        else:
+                            st.write(f"No animation for {info['condition']}")
 
 
-        def find_closest_time(target_time, time_list):
-            return min(time_list, key=lambda x: abs(x - target_time))
-
+            def find_closest_time(target_time, time_list):
+                return min(time_list, key=lambda x: abs(x - target_time))
 
         if selection == "Radar":
             # Fetch radar data
@@ -455,11 +467,11 @@ if place:
 
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
-                        return min(filtered_data_weather,
+                        return min(all_weather_data,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
 
 
-                    # Function to update map and weather information
+                   # Function to update map and weather information
                     def update_map_and_info():
                         current_frame = past_frames[st.session_state.current_frame_index]
                         m = create_map(radar_data, current_frame, "past", place)
@@ -513,8 +525,8 @@ if place:
                         custom_callback()
                     else:
                         callback_placeholder.markdown("Animation paused.")
-    except KeyError:
-        st.write("This place does not exist")
+    except Exception as e:
+        st.write(f"An error occurred: {str(e)}")
 
 # Add the feedback system
 with (st.expander(label="Click Me!", expanded=False, icon="🌤️")):
