@@ -7,6 +7,8 @@ import folium
 from streamlit_lottie import st_lottie_spinner
 import json
 from streamlit_extras.let_it_rain import rain
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 API_KEY = "99244869d28dc08abf57775616f75887"
 
@@ -26,21 +28,21 @@ def parse_datetime(dt_str):
     return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
 
-def get_weather_for_day(weather_data, days):
+def get_weather_for_day(weather_data, days, local_tz):
     if not weather_data:
         return None
-    target_date = parse_datetime(weather_data[0]['dt_txt']).date() + timedelta(days=days - 0.40)
-    day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                and 12 <= parse_datetime(d['dt_txt']).hour < 24]
+    target_date = parse_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - .93)
+    day_data = [d for d in weather_data if parse_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
+                and 7 < parse_datetime(d['dt_txt']).astimezone(local_tz).hour <= 19]  # 7 AM to 7 PM
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
-
-def get_weather_for_night(weather_data, days):
+def get_weather_for_night(weather_data, days, local_tz):
     if not weather_data:
         return None
-    target_date = parse_datetime(weather_data[0]['dt_txt']).date() + timedelta(days=days - 0.40)
-    night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).date() == target_date
-                  and (parse_datetime(d['dt_txt']).hour < 24 or parse_datetime(d['dt_txt']).hour < 9)]
+    target_date = parse_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - .93)
+    night_data = [d for d in weather_data if parse_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
+                  and (parse_datetime(d['dt_txt']).astimezone(local_tz).hour > 19
+                       or parse_datetime(d['dt_txt']).astimezone(local_tz).hour <= 7)]  # 7 PM to 7 AM
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
 
 
@@ -90,6 +92,73 @@ def get_coordinates(place):
     lat = city_info['coord']['lat']
     lon = city_info['coord']['lon']
     return lat, lon
+
+
+def create_additional_weather_conditions_chart(df):
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # Add traces for each weather condition
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Clouds"], name="Cloud Coverage (%)", line=dict(color="skyblue")),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Pop"], name="Precipitation Probability (%)", line=dict(color="blue")),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity (%)", line=dict(color="green")),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed (mph)", line=dict(color="orange")),
+        secondary_y=False,
+    )
+
+    # Add pressure on secondary y-axis
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Pressure"], name="Atmospheric Pressure (hPa)", line=dict(color="red")),
+        secondary_y=True,
+    )
+
+    # Add traces for temperature and real feel if not already in other graphs
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature (°F)", line=dict(color="darkred")),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel (°F)", line=dict(color="purple")),
+        secondary_y=False,
+    )
+
+    # Check if visibility data is available and add it
+    if "Visibility" in df.columns:
+        fig.add_trace(
+            go.Scatter(x=df["Time/Date"], y=df["Visibility"], name="Visibility (m)", line=dict(color="brown")),
+            secondary_y=False,
+        )
+
+    # Update layout
+    fig.update_layout(
+        title_text="Comprehensive Weather Conditions",
+        height=600,  # Increased height for better readability
+        legend_title_text="Weather Variables",
+        hovermode="x unified"
+    )
+
+    # Set x-axis title
+    fig.update_xaxes(title_text="Time")
+
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Values", secondary_y=False)
+    fig.update_yaxes(title_text="Pressure (hPa)", secondary_y=True)
+
+    return fig
 
 
 def get(path: str):

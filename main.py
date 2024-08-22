@@ -8,7 +8,7 @@ import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
-                     collect_and_display_feedback,
+                     collect_and_display_feedback, create_additional_weather_conditions_chart,
                      get_radar, create_map, parse_datetime)
 import time
 from streamlit_folium import folium_static
@@ -146,20 +146,56 @@ st.markdown("""
 
 def get_background_image(weather_condition):
     condition = weather_condition.lower()
+
+    # Clear skies
     if "clear" in condition:
-        return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
-                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
+        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+
+    # Cloudy conditions
+    elif "broken clouds" in condition:
+        return "https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww"
+    elif "scattered clouds" in condition:
+        return "https://c0.wallpaperflare.com/preview/532/447/657/scattered-white-clouds.jpg"
+    elif "few clouds" in condition:
+        return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
+    elif "overcast" in condition:
+        return "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3ZlcmNhc3QlMjBza3l8ZW58MHx8MHx8fDA%3D"
     elif "cloud" in condition:
-        return ("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib"
-                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww")
+        return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww"
+
+    # Rainy conditions
+    elif "light rain" in condition:
+        return "https://images.unsplash.com/photo-1438449805896-28a666819a20?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bGlnaHQlMjByYWlufGVufDB8fDB8fHww"
+    elif "moderate rain" in condition:
+        return "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW9kZXJhdGUlMjByYWlufGVufDB8fDB8fHww"
+    elif "heavy rain" in condition:
+        return "https://images.unsplash.com/photo-1620385019253-b051a26048ce?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjByYWlufGVufDB8fDB8fHww"
     elif "rain" in condition:
-        return ("https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib"
-                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D")
+        return "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmFpbnklMjBza3l8ZW58MHx8MHx8fDA%3D"
+
+    # Thunderstorm conditions
+    elif "thunderstorm" in condition:
+        return "https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGh1bmRlcnN0b3JtfGVufDB8fDB8fHww"
+
+    # Snowy conditions
+    elif "light snow" in condition:
+        return "https://images.unsplash.com/photo-1542601098-8fc114e148e2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGlnaHQlMjBzbm93fGVufDB8fDB8fHww"
+    elif "heavy snow" in condition:
+        return "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhdnklMjBzbm93fGVufDB8fDB8fHww"
     elif "snow" in condition:
-        return ("https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4"
-                ".0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D")
+        return "https://images.unsplash.com/photo-1547754980-3df97fed72a8?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25vd3klMjBza3l8ZW58MHx8MHx8fDA%3D"
+
+    # Misty or foggy conditions
+    elif "mist" in condition or "fog" in condition:
+        return "https://images.unsplash.com/photo-1543968996-ee822b8176ba?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWlzdHl8ZW58MHx8MHx8fDA%3D"
+
+    # Hazy conditions
+    elif "haze" in condition:
+        return "https://w0.peakpx.com/wallpaper/1022/864/HD-wallpaper-2-person-walking-on-pathway-between-trees-during-foggy-weather.jpg"
+
+    # Default image for any other condition
     else:
-        return "https://cdn.dribbble.com/users/1081778/screenshots/5331658/weath2.gif"
+        return "https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid=6c09b952xrvybbti8zhka3kfc4du1li0vbw77ds2vi0ro993&ep=v1_gifs_search&rid=giphy.gif&ct=g"
 
 
 DEFAULT_BACKGROUND = ("https://media4.giphy.com/media/2tNvsKkc0qFdNhJmKk/giphy.gif?cid"
@@ -246,8 +282,8 @@ if place:
         local_tz = pytz.timezone(timezone_str)
 
         # Get weather for the selected day
-        day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
-        night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
+        day_weather = get_weather_for_day(all_weather_data, st.session_state.days, local_tz)
+        night_weather = get_weather_for_night(all_weather_data, st.session_state.days, local_tz)
         if day_weather:
             # Update background image based on weather condition
             weather_condition = day_weather['weather'][0]['description']
@@ -290,8 +326,8 @@ if place:
                       on_change=update_days_sidebar,
                       help="Select the day")
 
-            day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
-            night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
+            day_weather = get_weather_for_day(all_weather_data, st.session_state.days, local_tz)
+            night_weather = get_weather_for_night(all_weather_data, st.session_state.days, local_tz)
 
             if day_weather and night_weather:
                 col1, col2 = st.columns(2)
@@ -338,7 +374,7 @@ if place:
 
                 chart_data = []
                 for data in all_weather_data:
-                    local_time = parse_datetime(data["dt_txt"]).astimezone(local_tz)
+                    local_time = parse_datetime(data["dt_txt"]).astimezone()
                     chart_data.append({
                         "Time/Date": local_time.strftime("%m-%d %I:%M %p"),
                         "Temperature": data["main"]["temp"],
@@ -356,7 +392,7 @@ if place:
                                     subplot_titles="Temperature and Real Feel")
                 fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"))
                 fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"))
-                fig.update_layout(height=400, title_text="Temperature and Real Feel")
+                fig.update_layout(height=400, title_text="Temperature and Real Feel", hovermode="x unified")
                 fig.update_xaxes(title_text="Time", tickangle=-45)
                 fig.update_yaxes(title_text="Temperature (°F)")
                 st.plotly_chart(fig, use_container_width=True)
@@ -365,34 +401,19 @@ if place:
                                     subplot_titles="Humidity and Wind Speed")
                 fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity", mode="lines"))
                 fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed", mode="lines"))
-                fig.update_layout(height=400, title_text="Humidity and Wind Speed")
+                fig.update_layout(height=400, title_text="Humidity and Wind Speed", hovermode="x unified")
                 fig.update_xaxes(title_text="Time", tickangle=-45)
                 fig.update_yaxes(title_text="Humidity (%) / Wind Speed (mph)")
                 st.plotly_chart(fig, use_container_width=True)
 
-                # New chart for additional weather conditions
-                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
-                                    subplot_titles="Additional Weather Conditions")
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Clouds"], name="Cloud Coverage", mode="lines"))
-                fig.add_trace(
-                    go.Scatter(x=df["Time/Date"], y=df["Pop"], name="Precipitation Probability", mode="lines"))
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Pressure"], name="Atmospheric Pressure", mode="lines",
-                                         yaxis="y2"))
-                fig.update_xaxes(title_text="Time", tickangle=-45)
-
-                fig.update_layout(
-                    height=400,
-                    title_text="Additional Weather Conditions",
-                    yaxis=dict(title="Percentage (%)"),
-                    yaxis2=dict(title="Pressure (hPa)", overlaying="y", side="right")
-                )
-                fig.update_xaxes(title_text="Time")
-                st.plotly_chart(fig, use_container_width=True)
+                # display comprehensive weather conditions chart
+                additional_conditions_fig = create_additional_weather_conditions_chart(df)
+                st.plotly_chart(additional_conditions_fig, use_container_width=True)
 
                 # Display raw data in a table (optional)
                 if st.checkbox("Show raw data"):
                     st.write(df)
-                st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
+                st.audio("summer_music.mp3", start_time=5.7, autoplay=True, format="audio/mpeg", loop=True)
 
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
@@ -407,7 +428,7 @@ if place:
 
                     if day_data:
                         mid_day_data = max(day_data, key=lambda x: parse_datetime(x['dt_txt']).hour)
-                        local_time = parse_datetime(mid_day_data["dt_txt"]).astimezone(local_tz)
+                        local_time = parse_datetime(mid_day_data["dt_txt"]).astimezone()
 
                         daily_conditions[target_date] = {
                             "condition": mid_day_data["weather"][0]["main"],
