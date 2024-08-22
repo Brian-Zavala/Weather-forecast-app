@@ -394,7 +394,6 @@ if place:
                     st.write(df)
                 st.audio("summer_music.mp3", start_time=131, autoplay=True, format="audio/mpeg")
 
-
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
 
