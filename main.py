@@ -155,7 +155,7 @@ def get_background_image(weather_condition):
     elif "broken clouds" in condition:
         return "https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww"
     elif "scattered clouds" in condition:
-        return "https://c0.wallpaperflare.com/preview/532/447/657/scattered-white-clouds.jpg"
+        return "https://media.gettyimages.com/id/1416004105/photo/clouds.jpg?s=612x612&w=0&k=20&c=BeTSfcSjyZbRDwkoWe7wRLTN7oM7uppgWKa7J5Sh6aM="
     elif "few clouds" in condition:
         return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D"
     elif "overcast" in condition:
@@ -413,7 +413,7 @@ if place:
                 # Display raw data in a table (optional)
                 if st.checkbox("Show raw data"):
                     st.write(df)
-                st.audio("summer_music.mp3", start_time=5.7, autoplay=True, format="audio/mpeg", loop=True)
+                st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
 
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
