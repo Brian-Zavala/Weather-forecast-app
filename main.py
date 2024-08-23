@@ -424,7 +424,7 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
 selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                 timedelta(days=st.session_state.days))
+                 timedelta(days=st.session_state.days - 1))
 
 st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
@@ -562,7 +562,8 @@ if place:
                 st.plotly_chart(fig, use_container_width=True)
                 st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
                 st.write(
-                    f"Weather forecast from {df['Time/Date'].min().strftime('%B %d, %Y')} to {df['Time/Date'].max().strftime('%B %d, %Y')}")
+                    f"Weather forecast from {df['Time/Date'].min().strftime('%B %d, %Y')} "
+                    f"to {df['Time/Date'].max().strftime('%B %d, %Y')}")
 
                 # Display raw data in a table (optional)
                 if st.toggle("Show raw data"):
