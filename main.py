@@ -8,15 +8,26 @@ from timezonefinder import TimezoneFinder
 import pandas as pd
 from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback, create_additional_weather_conditions_chart,
-                     get_radar, create_map, parse_datetime)
+                     get_radar, create_map, parse_api_datetime)
 import time
 from streamlit_folium import folium_static
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+
 
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 st.cache_data.clear()
 
+st.markdown("""
+<style>
+.clock-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+</style>
+""", unsafe_allow_html=True)
+# Create a container for the clock
+clock_container = st.container()
 
 # Load Lottie files
 def get(path: str):
@@ -128,10 +139,11 @@ st.markdown("""
        font-weight: 675px;
 
        }
-       .st-emotion-cache-1gwvy71 {
+       .st-emotion-cache-1gwvy71 h2 {
        background-image: url("{st.session_state.background_image}");
        background-size: cover;
        background-repeat: no-repeat;
+       color: red;
        display: flex;
        }
 
@@ -150,11 +162,10 @@ def get_background_image(weather_condition):
     if "clear" in condition:
         return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
-
     # Cloudy conditions
     elif "broken clouds" in condition:
-        return ("https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib"
-                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww")
+        return ("https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid"
+                "=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3ZlcmNhc3QlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "scattered clouds" in condition:
         return ("https://img.freepik.com/free-photo/blue-sky-with-windy-clouds-vertical-shot_23-2148824938.jpg?t=st"
                 "=1724337516~exp=1724341116~hmac=901fcc704543ef6fb3a62a22198891f8fbfe4e77456f814737827f9496f4bd35&w"
@@ -163,8 +174,8 @@ def get_background_image(weather_condition):
         return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "overcast" in condition:
-        return ("https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid"
-                "=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3ZlcmNhc3QlMjBza3l8ZW58MHx8MHx8fDA%3D")
+        return ( "https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib"
+                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww")
     elif "cloud" in condition:
         return ("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib"
                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww")
@@ -252,23 +263,154 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-current_time = st.empty
 # JavaScript to update time
-js_code = """
-<div id="current_time"></div>
-<script>
-function updateTime() {
-    var now = new Date();
-    var options = { timeZone: 'America/Chicago',
-    hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    var formattedTime = now.toLocaleString('en-US', options);
-    document.getElementById('current_time').innerHTML = 'Time: ' + formattedTime;
-}
-updateTime();
-setInterval(updateTime, 1000);
-</script>
-"""
+js_code = """<div id="clock-container">
+  <div id="analog-clock">
+    <div class="hand hour-hand"></div>
+    <div class="hand minute-hand"></div>
+    <div class="hand second-hand"></div>
+    <div class="center-dot"></div>
+    <div class="number number1">1</div>
+    <div class="number number2">2</div>
+    <div class="number number3">3</div>
+    <div class="number number4">4</div>
+    <div class="number number5">5</div>
+    <div class="number number6">6</div>
+    <div class="number number7">7</div>
+    <div class="number number8">8</div>
+    <div class="number number9">9</div>
+    <div class="number number10">10</div>
+    <div class="number number11">11</div>
+    <div class="number number12">12</div>
+  </div>
+  <div id="digital-clock"></div>
+</div>
 
+<style>
+#clock-container {
+  width: 200px;
+  height: 250px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+#analog-clock {
+  width: 150px;
+  height: 150px;
+  border: 2px solid #333;
+  border-radius: 50%;
+  position: relative;
+  background: white;
+}
+
+.hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform-origin: 50% 100%;
+  border-radius: 5px;
+}
+
+.hour-hand {
+  width: 6px;
+  height: 40px;
+  background: #333;
+}
+
+.minute-hand {
+  width: 4px;
+  height: 60px;
+  background: #666;
+}
+
+.second-hand {
+  width: 2px;
+  height: 70px;
+  background: #f00;
+}
+
+.center-dot {
+  width: 12px;
+  height: 12px;
+  background: #333;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.number {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  transform: rotate(var(--rotation));
+}
+
+.number1 { --rotation: 30deg; }
+.number2 { --rotation: 60deg; }
+.number3 { --rotation: 90deg; }
+.number4 { --rotation: 120deg; }
+.number5 { --rotation: 150deg; }
+.number6 { --rotation: 180deg; }
+.number7 { --rotation: 210deg; }
+.number8 { --rotation: 240deg; }
+.number9 { --rotation: 270deg; }
+.number10 { --rotation: 300deg; }
+.number11 { --rotation: 330deg; }
+.number12 { --rotation: 0deg; }
+
+#digital-clock {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 10px;
+}
+</style>
+
+<script>
+function updateClock() {
+  const now = new Date();
+  const hour = now.getHours() % 12;
+  const minute = now.getMinutes();
+  const second = now.getSeconds();
+
+  const hourDeg = (hour + minute / 60) * 30;
+  const minuteDeg = (minute + second / 60) * 6;
+  const secondDeg = second * 6;
+
+  document.querySelector('.hour-hand').style.transform = `rotate(${hourDeg}deg)`;
+  document.querySelector('.minute-hand').style.transform = `rotate(${minuteDeg}deg)`;
+  document.querySelector('.second-hand').style.transform = `rotate(${secondDeg}deg)`;
+
+  const options = { 
+    timeZone: 'America/Chicago',
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: true
+  };
+  const timeString = now.toLocaleString('en-US', options);
+  document.getElementById('digital-clock').textContent = timeString;
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+</script> """
+
+# put clock into empty container to move to corner of page
+with clock_container:
+    components.html(js_code, height=250)
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
@@ -282,14 +424,17 @@ days = st.slider("5 day forecast", 1, 5,
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
 selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                 timedelta(days=st.session_state.days - 1))
+                 timedelta(days=st.session_state.days - .93))
 
 st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
 
 if place:
     try:
         # Fetch weather data and coordinates
-        all_weather_data = get_weather(place, days=5)
+        all_weather_data, city_info = get_weather(place, days)
+
+        st.session_state.all_weather_data = all_weather_data
+        st.session_state.city_info = city_info
 
         lat, lon = get_coordinates(place)
 
@@ -334,8 +479,9 @@ if place:
             """, unsafe_allow_html=True)
 
         with st.sidebar:
-            components.html(js_code, height=50, scrolling=True)
             st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
+            st.subheader(f"Weather in {city_info['name']}, {city_info['country']}")
+            st.write(f"Population: {city_info['population']:,}")
 
             st.slider(" 5 Day Forecast ", 1, 5,
                       key="sidebar_slider_days",
@@ -385,15 +531,17 @@ if place:
                     )
 
         if selection == "Temperature":
-            if not all_weather_data:
+            if 'all_weather_data' not in st.session_state or not st.session_state.all_weather_data:
                 st.write("No weather data available for the selected day(s).")
             else:
+                all_weather_data = st.session_state.all_weather_data
+                city_info = st.session_state.city_info
 
                 chart_data = []
                 for data in all_weather_data:
-                    local_time = parse_datetime(data["dt_txt"]).astimezone()
+                    local_time = parse_api_datetime(data["dt_txt"]).astimezone(pytz.timezone("America/Chicago"))
                     chart_data.append({
-                        "Time/Date": local_time.strftime("%a %I:%M %p"),
+                        "Time/Date": local_time,
                         "Temperature": data["main"]["temp"],
                         "Real Feel": data["main"]["feels_like"],
                         "Humidity": data["main"]["humidity"],
@@ -405,47 +553,36 @@ if place:
 
                 df = pd.DataFrame(chart_data)
 
-                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
-                                    subplot_titles="Temperature and Real Feel")
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Temperature"], name="Temperature", mode="lines"))
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Real Feel"], name="Real Feel", mode="lines"))
-                fig.update_layout(height=400, title_text="Temperature and Real Feel", hovermode="x unified")
-                fig.update_xaxes(title_text="Time", tickangle=-45)
-                fig.update_yaxes(title_text="Temperature (°F)")
+                # Display city information
+                st.subheader(f"Weather in {city_info['name']}, {city_info['country']}")
+                st.write(f"Population: {city_info['population']:,}")
+
+                # Create and display the main weather chart
+                fig = create_additional_weather_conditions_chart(df, city_info)
                 st.plotly_chart(fig, use_container_width=True)
 
-                fig = make_subplots(rows=1, cols=1, shared_xaxes=True,
-                                    subplot_titles="Humidity and Wind Speed")
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Humidity"], name="Humidity", mode="lines"))
-                fig.add_trace(go.Scatter(x=df["Time/Date"], y=df["Wind Speed"], name="Wind Speed", mode="lines"))
-                fig.update_layout(height=400, title_text="Humidity and Wind Speed", hovermode="x unified")
-                fig.update_xaxes(title_text="Time", tickangle=-45)
-                fig.update_yaxes(title_text="Humidity (%) / Wind Speed (mph)")
-                st.plotly_chart(fig, use_container_width=True)
-
-                # display comprehensive weather conditions chart
-                additional_conditions_fig = create_additional_weather_conditions_chart(df)
-                st.plotly_chart(additional_conditions_fig, use_container_width=True)
+                st.write(
+                    f"Weather forecast from {df['Time/Date'].min().strftime('%B %d, %Y')} to {df['Time/Date'].max().strftime('%B %d, %Y')}")
 
                 # Display raw data in a table (optional)
-                if st.checkbox("Show raw data"):
+                if st.toggle("Show raw data"):
                     st.write(df)
-                st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
+                    st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
 
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
 
             if all_weather_data:
-                first_data_date = parse_datetime(all_weather_data[0]['dt_txt']).date()
+                first_data_date = parse_api_datetime(all_weather_data[0]['dt_txt']).date()
 
                 daily_conditions = {}
                 for i in range(st.session_state.days):
                     target_date = first_data_date + timedelta(days=i)
-                    day_data = [d for d in all_weather_data if parse_datetime(d['dt_txt']).date() == target_date]
+                    day_data = [d for d in all_weather_data if parse_api_datetime(d['dt_txt']).date() == target_date]
 
                     if day_data:
-                        mid_day_data = max(day_data, key=lambda x: parse_datetime(x['dt_txt']).hour)
-                        local_time = parse_datetime(mid_day_data["dt_txt"]).astimezone()
+                        mid_day_data = max(day_data, key=lambda x: parse_api_datetime(x['dt_txt']).hour)
+                        local_time = parse_api_datetime(mid_day_data["dt_txt"]).astimezone()
 
                         daily_conditions[target_date] = {
                             "condition": mid_day_data["weather"][0]["main"],
