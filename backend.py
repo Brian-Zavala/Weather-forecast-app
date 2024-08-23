@@ -39,7 +39,7 @@ def parse_api_datetime(dt_txt):
 def get_weather_for_day(weather_data, days, local_tz):
     if not weather_data:
         return None
-    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - 1)
+    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - .50)
     day_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
                 and 7 < parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour <= 16]  # 7 AM to 7 PM
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
@@ -48,7 +48,7 @@ def get_weather_for_day(weather_data, days, local_tz):
 def get_weather_for_night(weather_data, days, local_tz):
     if not weather_data:
         return None
-    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - 1)
+    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days - .50)
     night_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
                   and (parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour > 19
                        or parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour <= 7)]  # 7 PM to 7 AM
