@@ -12,7 +12,6 @@ from backend import (get_weather, get_weather_for_day, get_weather_for_night, ge
 import time
 from streamlit_folium import folium_static
 
-
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 st.cache_data.clear()
 
@@ -28,6 +27,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # Create a container for the clock
 clock_container = st.container()
+
 
 # Load Lottie files
 def get(path: str):
@@ -174,8 +174,8 @@ def get_background_image(weather_condition):
         return ("https://images.unsplash.com/photo-1601297183305-6df142704ea2?w=1600&auto=format&fit=crop&q=60&ixlib"
                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xlYXIlMjBza3l8ZW58MHx8MHx8fDA%3D")
     elif "overcast" in condition:
-        return ( "https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib"
-                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww")
+        return ("https://images.unsplash.com/photo-1594156596782-656c93e4d504?w=1600&auto=format&fit=crop&q=60&ixlib"
+                "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJva2VuJTIwY2xvdWRzfGVufDB8fDB8fHww")
     elif "cloud" in condition:
         return ("https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&auto=format&fit=crop&q=60&ixlib"
                 "=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xvdWR5JTIwc2t5fGVufDB8fDB8fHww")
@@ -569,7 +569,6 @@ if place:
                 if st.toggle("Show raw data"):
                     st.write(df)
 
-
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
 
@@ -638,12 +637,10 @@ if place:
                     if 'current_frame_index' not in st.session_state:
                         st.session_state.current_frame_index = 0
 
-
                     # Function to get weather data for a specific time
                     def get_weather_for_time(target_time):
                         return min(all_weather_data,
                                    key=lambda x: abs(datetime.strptime(x['dt_txt'], "%Y-%m-%d %H:%M:%S") - target_time))
-
 
                     # Function to update map and weather information
                     def update_map_and_info():
@@ -675,7 +672,6 @@ if place:
 
                     # Initial map and info update
                     update_map_and_info()
-
 
                     # Custom callback to update the map and weather info
                     def custom_callback():
