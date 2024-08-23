@@ -560,14 +560,14 @@ if place:
                 # Create and display the main weather chart
                 fig = create_additional_weather_conditions_chart(df, city_info)
                 st.plotly_chart(fig, use_container_width=True)
-
+                st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
                 st.write(
                     f"Weather forecast from {df['Time/Date'].min().strftime('%B %d, %Y')} to {df['Time/Date'].max().strftime('%B %d, %Y')}")
 
                 # Display raw data in a table (optional)
                 if st.toggle("Show raw data"):
                     st.write(df)
-                    st.audio("summer_music.mp3", start_time=5, autoplay=True, format="audio/mpeg", loop=True)
+
 
         elif selection == "Sky-View":
             images = {"Clear": clear, "Clouds": clouds, "Rain": rainy, "Snow": snow}
