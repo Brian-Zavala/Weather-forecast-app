@@ -150,7 +150,7 @@ def create_additional_weather_conditions_chart(df, city_info):
 
     # Update layout
     fig.update_layout(
-        title_text=f"Detailed Weather Forecast for {city_info['name']}, {city_info['country']} (Pop: {city_info['population']:,}) (Chicago Time)",
+
         height=600,
         legend_title_text="Weather Variables",
         hovermode="x unified",

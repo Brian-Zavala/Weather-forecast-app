@@ -36,37 +36,55 @@ snow = get("lottie/snow.json")
 st.markdown("""
 <style>
 /* Global Styles */
-body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-}
-
 .stApp {
     color: white;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Sidebar Styles */
+[data-testid="stSidebar"] {
+    background-image: url("{st.session_state.background_image}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    width: 100%;
 }
 
 [data-testid="stSidebarNav"] {
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
+    height: 100%;
 }
 
 /* Ensure sidebar content is readable */
 [data-testid="stSidebar"] [data-testid="stMarkdown"] {
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 5px;
-    padding: 10px;
+    padding: 5px;
     color: white;
 }
 
 /* Sidebar metrics */
 [data-testid="stMetricValue"] {
     background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 5px;
-    padding: 5px;
+    border-radius: 11px;
+    padding:0px;
 }
 
+/* Hide toolbar/header */
+[data-testid="stToolbar"] {
+    display: None;
+}
+
+header[data-testid="stHeader"] {
+    display: None;
+}
+
+/* Adjust main content area to compensate for hidden header */
+.main .block-container {
+    padding-top: 1rem;
+    max-width: 100%;
+    width: 100%;
+}
 
 .st-emotion-cache-18ni7ap {
     background-image: url("{st.session_state.background_image}");
@@ -93,16 +111,11 @@ h3 {
 }
 
 div.st-emotion-cache-1whx7iy p {
-    color: Black;
+    color: black;
     font-family: "New Century Schoolbook", "TeX Gyre Schola", serif;
-    font-weight: 675;
+    font-weight: 675px;
     font-size: 30px;
 }
-
-[class="eyeqlp53 st-emotion-cache-1pbsqtx ex0cdmw0"] {
-display: none;
-}
-
 
 .block-container {
     padding-top: 1rem;
@@ -119,25 +132,26 @@ div.st-emotion-cache-1mi2ry5 {
 }
 
 div.st-emotion-cache-1wivap2 {
-    color: #F40009;
-    font-weight: 650px;
-    white-space: normal;
+    font-size: 40px;
+    font-weight: 600px;
+    white-space: pre-wrap;
     line-height: 41.5px;
     text-overflow: clip;
     overflow: visible;
-    margin-top: 0;
+    margin-top: 30px;
 }
+
 
 .st-emotion-cache-1gwvy71 h2 {
     background-image: url("{st.session_state.background_image}");
     background-size: cover;
     background-repeat: no-repeat;
-    color: red;
+    color: bacl;
     display: flex;
 }
 
 [class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
-       color: red;
+       color: white;
        font-weight: 500px;
        }
 
