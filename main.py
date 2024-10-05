@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import pytz
 from timezonefinder import TimezoneFinder
 import pandas as pd
-from backend import (get_weather, get_weather_for_day, get_weather_for_night, get_coordinates,
+from backend import (get_weather,get_current_chicago_time, get_weather_for_day, get_weather_for_night, get_coordinates,
                      collect_and_display_feedback, create_additional_weather_conditions_chart,
                      get_radar, create_map, parse_api_datetime)
 import time
@@ -15,16 +15,7 @@ from streamlit_folium import folium_static
 st.set_page_config(page_title="Weather App", page_icon="🌡️", layout="wide", initial_sidebar_state="expanded")
 st.cache_data.clear()
 
-st.markdown("""
-<style>
-.clock-container {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-}
-</style>
-""", unsafe_allow_html=True)
+
 # Create a container for the clock
 clock_container = st.container()
 
@@ -44,6 +35,121 @@ snow = get("lottie/snow.json")
 
 st.markdown("""
 <style>
+/* Global Styles */
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+}
+
+.stApp {
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+[data-testid="stSidebarNav"] {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+/* Ensure sidebar content is readable */
+[data-testid="stSidebar"] [data-testid="stMarkdown"] {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+}
+
+/* Sidebar metrics */
+[data-testid="stMetricValue"] {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+
+.st-emotion-cache-18ni7ap {
+    background-image: url("{st.session_state.background_image}");
+    background-size: cover;
+}
+
+/* Audio Player */
+.stAudio {
+    display: none;
+}
+
+/* Custom Classes */
+[class="st-emotion-cache-1vzeuhh ew7r33m3"] {
+background-color: Gold;
+}
+
+[class="st-at st-av st-aw st-au st-c6 st-c7 st-ah st-c8 st-c9"] {
+background-color: red;
+border-radius: 20 px
+}
+
+h3 {
+    color: Black;
+}
+
+div.st-emotion-cache-1whx7iy p {
+    color: Black;
+    font-family: "New Century Schoolbook", "TeX Gyre Schola", serif;
+    font-weight: 675;
+    font-size: 30px;
+}
+
+[class="eyeqlp53 st-emotion-cache-1pbsqtx ex0cdmw0"] {
+display: none;
+}
+
+
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+}
+
+div.st-emotion-cache-1mi2ry5 {
+    background-image: url("{st.session_state.background_image}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+div.st-emotion-cache-1wivap2 {
+    color: #F40009;
+    font-weight: 650px;
+    white-space: normal;
+    line-height: 41.5px;
+    text-overflow: clip;
+    overflow: visible;
+    margin-top: 0;
+}
+
+.st-emotion-cache-1gwvy71 h2 {
+    background-image: url("{st.session_state.background_image}");
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: red;
+    display: flex;
+}
+
+[class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
+       color: red;
+       font-weight: 500px;
+       }
+
+/* Clock Container */
+.clock-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+/* Media Queries */
 @media (max-width: 600px) {
     .stApp {
         padding: 0;
@@ -56,103 +162,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-.stAudio {
-    display: none;
-}
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style>
-[class="st-emotion-cache-1vzeuhh ew7r33m3"] {
-background-color: Gold;
-}
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style>
-[class="st-at st-av st-aw st-au st-c6 st-c7 st-ah st-c8 st-c9"] {
-background-color: red;
-border-radius: 20 px
-}
-h3 {
-color: Black;
-}
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style> 
-div.st-emotion-cache-1whx7iy p {
-color: Black;
-font-family: "New Century Schoolbook", "TeX Gyre Schola", serif;
-font-weight: 675px;
-}
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style> 
 
 
-""", unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-[class="eyeqlp53 st-emotion-cache-1pbsqtx ex0cdmw0"] {
-display: none;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-        <style>
-               .block-container {
-                    padding-top: 1rem;
-                    padding-bottom: 0rem;
-                    padding-left: 5rem;
-                    padding-right: 5rem;
-                }
-        </style>
-        """, unsafe_allow_html=True)
-
-st.markdown("""
-       <style>
-       div.st-emotion-cache-1mi2ry5 {
-       background-image: url("{st.session_state.background_image}");
-       background-size: cover;
-       background-position: center;
-       background-repeat: no-repeat;
-
-       }
-       div.st-emotion-cache-1wivap2{
-       color: #F40009;
-       font-weight: 650px;
-       white-space: normal;
-       line-height: 41.5px;
-       text-overflow: clip;
-       overflow: visible;
-       margin-top: 0px;
-       }
-       div.st-emotion-cache-1whx7iy p {
-       color: Black;
-       font-size: 30px;
-       font-weight: 675px;
-
-       }
-       .st-emotion-cache-1gwvy71 h2 {
-       background-image: url("{st.session_state.background_image}");
-       background-size: cover;
-       background-repeat: no-repeat;
-       color: red;
-       display: flex;
-       }
-
-       [class="eyeqlp53 st-emotion-cache-1f3w014 ex0cdmw0"] {
-       color: red;
-       font-weight: 500px;
-       }
-       </style>
-       """, unsafe_allow_html=True)
 
 
 def get_background_image(weather_condition):
@@ -246,7 +258,6 @@ def update_days_main():
 def update_days_sidebar():
     st.session_state.days = st.session_state.sidebar_slider_days
 
-
 # Set initial background
 st.markdown(f"""
 <style>
@@ -264,126 +275,19 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # JavaScript to update time
-js_code = """<div id="clock-container">
-  <div id="analog-clock">
-    <div class="hand hour-hand"></div>
-    <div class="hand minute-hand"></div>
-    <div class="hand second-hand"></div>
-    <div class="center-dot"></div>
-    <div class="number number1">1</div>
-    <div class="number number2">2</div>
-    <div class="number number3">3</div>
-    <div class="number number4">4</div>
-    <div class="number number5">5</div>
-    <div class="number number6">6</div>
-    <div class="number number7">7</div>
-    <div class="number number8">8</div>
-    <div class="number number9">9</div>
-    <div class="number number10">10</div>
-    <div class="number number11">11</div>
-    <div class="number number12">12</div>
-  </div>
-  <div id="digital-clock"></div>
+js_code = """
+<div id="clock-container">
+  <!-- ... (keep your existing clock HTML) ... -->
 </div>
-
-<style>
-#clock-container {
-  width: 200px;
-  height: 250px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 20px auto;
-}
-
-#analog-clock {
-  width: 150px;
-  height: 150px;
-  border: 2px solid #333;
-  border-radius: 50%;
-  position: relative;
-  background: white;
-}
-
-.hand {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  transform-origin: 50% 100%;
-  border-radius: 5px;
-}
-
-.hour-hand {
-  width: 6px;
-  height: 40px;
-  background: #333;
-}
-
-.minute-hand {
-  width: 4px;
-  height: 60px;
-  background: #666;
-}
-
-.second-hand {
-  width: 2px;
-  height: 70px;
-  background: #f00;
-}
-
-.center-dot {
-  width: 12px;
-  height: 12px;
-  background: #333;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.number {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
-  transform: rotate(var(--rotation));
-}
-
-.number1 { --rotation: 30deg; }
-.number2 { --rotation: 60deg; }
-.number3 { --rotation: 90deg; }
-.number4 { --rotation: 120deg; }
-.number5 { --rotation: 150deg; }
-.number6 { --rotation: 180deg; }
-.number7 { --rotation: 210deg; }
-.number8 { --rotation: 240deg; }
-.number9 { --rotation: 270deg; }
-.number10 { --rotation: 300deg; }
-.number11 { --rotation: 330deg; }
-.number12 { --rotation: 0deg; }
-
-#digital-clock {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-top: 10px;
-}
-</style>
 
 <script>
 function updateClock() {
   const now = new Date();
-  const hour = now.getHours() % 12;
-  const minute = now.getMinutes();
-  const second = now.getSeconds();
+  const chicagoTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+
+  const hour = chicagoTime.getHours() % 12;
+  const minute = chicagoTime.getMinutes();
+  const second = chicagoTime.getSeconds();
 
   const hourDeg = (hour + minute / 60) * 30;
   const minuteDeg = (minute + second / 60) * 6;
@@ -400,17 +304,27 @@ function updateClock() {
     second: '2-digit',
     hour12: true
   };
-  const timeString = now.toLocaleString('en-US', options);
+  const timeString = chicagoTime.toLocaleString('en-US', options);
   document.getElementById('digital-clock').textContent = timeString;
+
+  // Make the time available globally
+  window.currentChicagoTime = chicagoTime;
 }
 
 updateClock();
 setInterval(updateClock, 1000);
-</script> """
+
+// Function to get the current Chicago time
+function getCurrentChicagoTime() {
+  return window.currentChicagoTime || new Date();
+}
+</script>
+"""
 
 # put clock into empty container to move to corner of page
 with clock_container:
     components.html(js_code, height=250)
+
 # Add front-end to webpage title, widgets
 place = st.text_input("🏠 Location", placeholder="Enter City...")
 
@@ -423,10 +337,9 @@ days = st.slider("5 day forecast", 1, 5,
 
 selection = st.selectbox("🌞 Metric Data", ("Temperature", "Sky-View", "Radar"))
 
-selected_date = (datetime.now(pytz.timezone("America/Chicago")).astimezone() +
-                 timedelta(days=st.session_state.days - .50))
+selected_date = get_current_chicago_time() + timedelta(days=st.session_state.days - .50)
 
-st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')}")
+st.subheader(f"{selection} for {place} | {selected_date.strftime('%A''\n''%Y-%m-%d')} (Chicago Time)")
 
 if place:
     try:
@@ -438,14 +351,15 @@ if place:
 
         lat, lon = get_coordinates(place)
 
-        # Get the timezone for the given coordinates
+        # Get the timezone for the given coordinates (we'll still use this for the location's timezone)
         tf = TimezoneFinder()
         timezone_str = tf.certain_timezone_at(lat=lat, lng=lon)
         local_tz = pytz.timezone(timezone_str)
 
-        # Get weather for the selected day
-        day_weather = get_weather_for_day(all_weather_data, st.session_state.days, local_tz)
-        night_weather = get_weather_for_night(all_weather_data, st.session_state.days, local_tz)
+        # Get weather for the selected day (now using Chicago time)
+        day_weather = get_weather_for_day(all_weather_data, st.session_state.days)
+        night_weather = get_weather_for_night(all_weather_data, st.session_state.days)
+
         if day_weather:
             # Update background image based on weather condition
             weather_condition = day_weather['weather'][0]['description']
@@ -479,7 +393,7 @@ if place:
             """, unsafe_allow_html=True)
 
         with st.sidebar:
-            st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')}")
+            st.sidebar.header(f"{selected_date.strftime('%A''\n''%Y-%m-%d')} (Chicago Time)")
             st.subheader(f"Weather in {city_info['name']}, {city_info['country']}")
             st.write(f"Population: {city_info['population']:,}")
 
@@ -488,9 +402,6 @@ if place:
                       value=st.session_state.days,
                       on_change=update_days_sidebar,
                       help="Select the day")
-
-            day_weather = get_weather_for_day(all_weather_data, st.session_state.days, local_tz)
-            night_weather = get_weather_for_night(all_weather_data, st.session_state.days, local_tz)
 
             if day_weather and night_weather:
                 col1, col2 = st.columns(2)
@@ -521,7 +432,7 @@ if place:
                         label="Wind Speed",
                         value=f"{day_weather['wind']['speed']:.1f} MPH",
                         delta=f"Wind Gust {day_weather['wind']['speed'] +
-                                           day_weather['wind']['gust']:.1f} MPH",
+                                           day_weather['wind'].get('gust', 0):.1f} MPH",
                         delta_color="inverse"
                     )
 
@@ -529,7 +440,6 @@ if place:
                         label="Sky",
                         value=f"{day_weather['weather'][0]['description']}"
                     )
-
         if selection == "Temperature":
             if 'all_weather_data' not in st.session_state or not st.session_state.all_weather_data:
                 st.write("No weather data available for the selected day(s).")
@@ -538,8 +448,9 @@ if place:
                 city_info = st.session_state.city_info
 
                 chart_data = []
+                chicago_tz = pytz.timezone('America/Chicago')
                 for data in all_weather_data:
-                    local_time = parse_api_datetime(data["dt_txt"]).astimezone(pytz.timezone("America/Chicago"))
+                    local_time = parse_api_datetime(data["dt_txt"]).astimezone(chicago_tz)
                     chart_data.append({
                         "Time/Date": local_time,
                         "Temperature": data["main"]["temp"],
@@ -548,13 +459,13 @@ if place:
                         "Wind Speed": data["wind"]["speed"],
                         "Clouds": data["clouds"]["all"],
                         "Pressure": data["main"]["pressure"],
-                        "Pop": data.get("pop", 0) * 100  # Convert probability of precipitation to percentage
+                        "Pop": data.get("pop", 0) * 100
                     })
 
                 df = pd.DataFrame(chart_data)
 
                 # Display city information
-                st.subheader(f"Weather in {city_info['name']}, {city_info['country']}")
+                st.subheader(f"Weather in {city_info['name']}, {city_info['country']} (Chicago Time)")
                 st.write(f"Population: {city_info['population']:,}")
 
                 # Create and display the main weather chart

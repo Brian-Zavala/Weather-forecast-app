@@ -36,24 +36,29 @@ def parse_api_datetime(dt_txt):
     return datetime.strptime(dt_txt, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
 
-def get_weather_for_day(weather_data, days, local_tz):
+
+def get_weather_for_day(weather_data, days):
     if not weather_data:
         return None
-    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days)
-    day_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
-                and 7 < parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour <= 16]  # 7 AM to 7 PM
+    chicago_tz = pytz.timezone('America/Chicago')
+    target_date = get_current_chicago_time().date() + timedelta(days=days)
+    day_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(chicago_tz).date() == target_date
+                and 7 < parse_api_datetime(d['dt_txt']).astimezone(chicago_tz).hour <= 16]  # 7 AM to 7 PM
     return max(day_data, key=lambda x: x['main']['temp']) if day_data else None
 
 
-def get_weather_for_night(weather_data, days, local_tz):
+def get_current_chicago_time():
+    return datetime.now(pytz.timezone('America/Chicago'))
+
+def get_weather_for_night(weather_data, days):
     if not weather_data:
         return None
-    target_date = parse_api_datetime(weather_data[0]['dt_txt']).astimezone(local_tz).date() + timedelta(days=days)
-    night_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(local_tz).date() == target_date
-                  and (parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour > 19
-                       or parse_api_datetime(d['dt_txt']).astimezone(local_tz).hour <= 7)]  # 7 PM to 7 AM
+    chicago_tz = pytz.timezone('America/Chicago')
+    target_date = get_current_chicago_time().date() + timedelta(days=days)
+    night_data = [d for d in weather_data if parse_api_datetime(d['dt_txt']).astimezone(chicago_tz).date() == target_date
+                  and (parse_api_datetime(d['dt_txt']).astimezone(chicago_tz).hour > 19
+                       or parse_api_datetime(d['dt_txt']).astimezone(chicago_tz).hour <= 7)]  # 7 PM to 7 AM
     return min(night_data, key=lambda x: x['main']['temp']) if night_data else None
-
 
 def get_radar():
     API_URL = f"https://api.rainviewer.com/public/weather-maps.json"
@@ -104,7 +109,9 @@ def get_coordinates(place):
 
 
 def create_additional_weather_conditions_chart(df, city_info):
-    # Create figure with secondary y-axis
+    chicago_tz = pytz.timezone('America/Chicago')
+    df['Time/Date'] = df['Time/Date'].dt.tz_convert(chicago_tz)
+
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     # Add traces for temperature
@@ -143,7 +150,7 @@ def create_additional_weather_conditions_chart(df, city_info):
 
     # Update layout
     fig.update_layout(
-        title_text=f"Detailed Weather Forecast for {city_info['name']}, {city_info['country']} (Pop: {city_info['population']:,})",
+        title_text=f"Detailed Weather Forecast for {city_info['name']}, {city_info['country']} (Pop: {city_info['population']:,}) (Chicago Time)",
         height=600,
         legend_title_text="Weather Variables",
         hovermode="x unified",
@@ -151,8 +158,7 @@ def create_additional_weather_conditions_chart(df, city_info):
     )
 
     # Set x-axis title
-    fig.update_xaxes(title_text="Date and Time", tickangle=-45, tickformat="%b %d\n%I:%M %p")
-
+    fig.update_xaxes(title_text="Date and Time (Chicago)", tickangle=-45, tickformat="%b %d\n%I:%M %p")
     # Set y-axes titles
     fig.update_yaxes(title_text="Temperature (°F)", secondary_y=False)
     fig.update_yaxes(title_text="Weather Variables", secondary_y=True)
